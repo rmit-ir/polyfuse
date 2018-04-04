@@ -19,8 +19,10 @@
 #include "trec.h"
 
 void
-rbc_init(const struct trec_topic *topics,
-    const double phi, const size_t depth);
+rbc_weight_alloc(const double phi, const size_t len);
+
+void
+rbc_init(const struct trec_topic *topics);
 
 void
 rbc_destory();
@@ -29,6 +31,15 @@ void
 rbc_accumulate(struct trec_run *r);
 
 void
-rbc_present(FILE *stream, const char *id);
+rbc_set_fusion(const int type);
+
+void
+rbc_set_rrf_k(const long k);
+
+double
+rbc_score(size_t rank, struct trec_entry *tentry);
+
+void
+rbc_present(FILE *stream, const char *id, size_t depth);
 
 #endif /* RBC_H */

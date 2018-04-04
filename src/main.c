@@ -18,9 +18,23 @@
 #include "trec.h"
 
 #define DEFAULT_DEPTH 1000
-#define RBC_RUNID "polyfuse-rbc"
+#define POLYFUSE_RUNID "polyfuse-rbc"
+#define FCOMBSUM "combsum"
+#define FRBC "rbc"
+#define FRRF "rrf"
+#define CMDSTR_LEN 8
 
+enum fuse_cmd {
+    TNONE,
+    TCOMBSUM,
+    TRBC,
+    TRRF
+};
+
+static enum fuse_cmd cmd = TNONE;
+static char cmd_str[CMDSTR_LEN] = {0};
 static double phi = 0.8;
+static long rrf_k = 60;
 static size_t depth = DEFAULT_DEPTH;
 char *runid = NULL;
 
@@ -29,6 +43,9 @@ parse_opt(int argc, char **argv);
 
 static void
 usage(void);
+
+static void
+present_args();
 
 static FILE *
 next_file(int argc, char **argv)
@@ -54,21 +71,25 @@ main(int argc, char **argv)
     FILE *fp;
 
     left = parse_opt(argc, argv);
+    present_args();
 
     for (size_t i = left; (fp = next_file(i, argv)) != NULL; i--) {
         struct trec_run *r = trec_create();
         trec_read(r, fp);
         if (first) {
-            rbc_init(&r->topics, phi, depth);
+            rbc_init(&r->topics);
+            rbc_set_fusion(cmd);
+            rbc_set_rrf_k(rrf_k);
             first = false;
         }
 
+        rbc_weight_alloc(phi, r->len);
         rbc_accumulate(r);
         trec_destroy(r);
         fclose(fp);
     }
 
-    rbc_present(stdout, runid);
+    rbc_present(stdout, runid, depth);
     rbc_destory();
     free(runid);
 
@@ -83,24 +104,57 @@ parse_opt(int argc, char **argv)
 {
     int ch;
 
-    while ((ch = getopt(argc, argv, "hd:p:r:v")) != -1) {
-        switch (ch) {
-        case 'h':
+    if (argc > 1) {
+        if (0 == strncmp(argv[optind], "-h", 3)) {
             usage();
             exit(EXIT_SUCCESS);
-            break;
+        } else if (0 == strncmp(argv[optind], "-v", 3)) {
+            printf("polyfuse %s\n", POLYFUSE_VERSION);
+            exit(EXIT_SUCCESS);
+        }
+
+        if (0 == strncmp(argv[optind], FCOMBSUM, strlen(argv[optind]))) {
+            cmd = TCOMBSUM;
+            strncpy(cmd_str, FCOMBSUM, CMDSTR_LEN);
+        } else if (0 == strncmp(argv[optind], FRBC, strlen(argv[optind]))) {
+            cmd = TRBC;
+            strncpy(cmd_str, FRBC, CMDSTR_LEN);
+        } else if (0 == strncmp(argv[optind], FRRF, strlen(argv[optind]))) {
+            cmd = TRRF;
+            strncpy(cmd_str, FRRF, CMDSTR_LEN);
+        } else {
+            cmd = TNONE;
+        }
+
+        if (TNONE == cmd) {
+            err_exit("unkown fusion command '%s'", argv[optind]);
+        }
+
+        optind++;
+    }
+
+    char opt_str[7] = {0};
+    if (TRBC == cmd) {
+        strcpy(opt_str, "d:r:p:");
+    } else if (TRRF == cmd) {
+        strcpy(opt_str, "d:r:k:");
+    } else if (TCOMBSUM == cmd) {
+        strcpy(opt_str, "d:r:");
+    }
+
+    while ((ch = getopt(argc, argv, opt_str)) != -1) {
+        switch (ch) {
         case 'd':
             depth = strtoul(optarg, NULL, 10);
-            break;
-        case 'p':
-            phi = strtod(optarg, NULL);
             break;
         case 'r':
             runid = strdup(optarg);
             break;
-        case 'v':
-            printf("polyfuse %s\n", POLYFUSE_VERSION);
-            exit(EXIT_SUCCESS);
+        case 'k':
+            rrf_k = strtol(optarg, NULL, 10);
+            break;
+        case 'p':
+            phi = strtod(optarg, NULL);
             break;
         case '?':
         default:
@@ -110,7 +164,7 @@ parse_opt(int argc, char **argv)
     }
 
     if (!runid) {
-        runid = strdup(RBC_RUNID);
+        runid = strdup(POLYFUSE_RUNID);
     }
 
     argc -= optind;
@@ -128,13 +182,32 @@ parse_opt(int argc, char **argv)
 static void
 usage(void)
 {
-    fprintf(stderr, "Usage: polyfuse [option] run1 run2 [run3 ...]\n");
-    fprintf(stderr, "\nOptions:\n"
-                    "  -t type      Fusion algorithm to use. Options are:\n"
-                    "               combsum|rbc|rrf\n"
-                    "  -p num       User persistence in the range [0.0,1.0]\n"
-                    "  -d depth     Rank depth to calculate\n"
-                    "  -r runid     Set run identifier\n"
-                    "  -h           Display this message\n"
-                    "  -v           Display version and exit\n\n");
+    fprintf(stderr, "usage: polyfuse [-v] [-h] "
+                    "<fusion> [options] run1 run2 [run3 ...]\n"
+                    "\noptions:\n"
+                    "  -d depth     rank depth to calculate\n"
+                    "  -h           display this message\n"
+                    "  -r runid     set run identifier\n"
+                    "  -v           display version and exit\n"
+                    "\nfusion commands:\n"
+                    "  combsum      CombSUM\n"
+                    "  rbc          Rank-biased centroids\n"
+                    "  rrf          Recipocal rank fusion\n"
+                    "\nrbc options:\n"
+                    "  -p num       user persistence in the range [0.0,1.0]\n"
+                    "\nrrf options:\n"
+                    "  -k num       constant to control outlier rankings\n\n");
+}
+
+static void
+present_args()
+{
+    fprintf(stderr, "# runid: %s\n", runid);
+    fprintf(stderr, "# depth: %ld\n", depth);
+    fprintf(stderr, "# fusion: %s\n", cmd_str);
+    if (TRBC == cmd) {
+        fprintf(stderr, "# phi: %f\n", phi);
+    } else if (TRRF == cmd) {
+        fprintf(stderr, "# k: %ld\n", rrf_k);
+    }
 }

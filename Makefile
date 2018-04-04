@@ -12,7 +12,7 @@ TARGET = polyfuse
 GIT = $(shell which git)
 GITDIR = $(shell stat .git > /dev/null; echo $$?)
 VERSION_NUM = 0.1.0
-VERSION_EXTRA =
+VERSION_EXTRA = -dev
 ifneq ($(GIT),)
 ifeq ($(GITDIR), 0)
 	VERSION_EXTRA += ($(shell $(GIT) rev-parse --short=8 HEAD))
@@ -30,6 +30,8 @@ SRC = src/main.c src/util.c src/trec.c src/rbc_accum.c \
           src/rbc.c src/rbc_topic.c src/rbc_pq.c
 OBJ := $(SRC:.c=.o)
 DEP := $(patsubst %.c,%.d,$(SRC))
+
+TESTDIR = test
 
 .PHONY: all
 all: $(TARGET)
@@ -51,6 +53,12 @@ $(TARGET): $(OBJ)
 
 .PHONY: clean
 clean:
+	$(MAKE) -C $(TESTDIR) $@
 	$(RM) $(TARGET) $(OBJ) $(DEP)
+
+.PHONY: check
+check: $(TARGET)
+	$(MAKE) -C $(TESTDIR)
+	./test/all -c
 
 -include $(DEP)
