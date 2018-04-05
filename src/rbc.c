@@ -85,7 +85,7 @@ rbc_accumulate(struct trec_run *r)
     for (size_t i = 0; i < r->len; i++) {
         size_t rank = r->ary[i].rank - 1;
         if (rank < weight_sz) {
-            double score = rbc_score(rank, &r->ary[i]);
+            double score = rbc_score(rank + 1, &r->ary[i]);
             struct rbc_accum **curr;
             curr = rbc_topic_lookup(topic_tab, r->ary[i].qid);
             if (*curr) {
@@ -115,13 +115,12 @@ rbc_score(size_t rank, struct trec_entry *tentry)
     if (1 == fusion) {
         /* combsum */
         s = tentry->score;
-        DLOG("comsumb s: %f\n", s);
     } else if (2 == fusion) {
         /* rbc */
-        s = weights[rank];
+        s = weights[rank - 1];
     } else if (3 == fusion) {
         /* rrf */
-        s = 1 / (rrf_k + tentry->score);
+        s = 1 / ((double)rrf_k + rank);
     }
 
     return s;
@@ -165,8 +164,8 @@ rbc_present(FILE *stream, const char *id, size_t depth)
         for (size_t j = weight_sz, k = 1; j > 0; j--) {
             size_t idx = j - 1;
             if (res[idx].is_set) {
-                fprintf(stream, "%d Q0 %s %lu %.4f %s\n", qids.ary[i],
-                    res[idx].docno, k++, (idx + res[idx].val) / norm, id);
+                fprintf(stream, "%d Q0 %s %lu %.8f %s\n", qids.ary[i],
+                    res[idx].docno, k++, idx + res[idx].val / norm, id);
             }
         }
         free(res);
