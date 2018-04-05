@@ -150,8 +150,8 @@ rbc_present(FILE *stream, const char *id, size_t depth)
         depth = weight_sz;
     }
 
-    /* combsum normalization */
-    if (TCOMBSUM == fusion) {
+    /* combsum, combmnz normalization */
+    if (TCOMBSUM == fusion || TCOMBMNZ == fusion) {
         norm = depth;
     }
 
