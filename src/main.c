@@ -15,7 +15,7 @@
 #include <unistd.h>
 
 #include "fusetype.h"
-#include "rbc.h"
+#include "polyfuse.h"
 #include "trec.h"
 
 #define DEFAULT_DEPTH 1000
@@ -75,20 +75,24 @@ main(int argc, char **argv)
         struct trec_run *r = trec_create();
         trec_read(r, fp);
         if (first) {
-            rbc_init(&r->topics);
-            rbc_set_fusion(cmd);
-            rbc_set_rrf_k(rrf_k);
+            /*
+             * All run files are assumed to have the same topics and are taken
+             * from the first file given on the commandline.
+             */
+            pf_init(&r->topics);
+            pf_set_fusion(cmd);
+            pf_set_rrf_k(rrf_k);
             first = false;
         }
 
-        rbc_weight_alloc(phi, r->len);
-        rbc_accumulate(r);
+        pf_weight_alloc(phi, r->len);
+        pf_accumulate(r);
         trec_destroy(r);
         fclose(fp);
     }
 
-    rbc_present(stdout, runid, depth);
-    rbc_destory();
+    pf_present(stdout, runid, depth);
+    pf_destory();
     free(runid);
 
     return 0;

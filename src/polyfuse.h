@@ -7,40 +7,40 @@
  * that was distributed with this source code.
  */
 
-#ifndef RBC_H
-#define RBC_H
+#ifndef PF_H
+#define PF_H
 
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "fusetype.h"
-#include "rbc_pq.h"
-#include "rbc_topic.h"
+#include "pf_pq.h"
+#include "pf_topic.h"
 #include "trec.h"
 
 void
-rbc_weight_alloc(const double phi, const size_t len);
+pf_weight_alloc(const double phi, const size_t len);
 
 void
-rbc_init(const struct trec_topic *topics);
+pf_init(const struct trec_topic *topics);
 
 void
-rbc_destory();
+pf_destory();
 
 void
-rbc_accumulate(struct trec_run *r);
+pf_accumulate(struct trec_run *r);
 
 void
-rbc_set_fusion(const enum fusetype type);
+pf_set_fusion(const enum fusetype type);
 
 void
-rbc_set_rrf_k(const long k);
+pf_set_rrf_k(const long k);
 
 double
-rbc_score(size_t rank, struct trec_entry *tentry);
+pf_score(size_t rank, struct trec_entry *tentry);
 
 void
-rbc_present(FILE *stream, const char *id, size_t depth);
+pf_present(FILE *stream, const char *id, size_t depth);
 
 #endif /* RBC_H */

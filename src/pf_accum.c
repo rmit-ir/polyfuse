@@ -7,7 +7,7 @@
  * that was distributed with this source code.
  */
 
-#include "rbc_accum.h"
+#include "pf_accum.h"
 
 #define LOAD_FACTOR 0.75
 #define HASH(s, ht) (str_hash(s) % ht->capacity)
@@ -60,12 +60,12 @@ get_prime(size_t n)
 /*
  * Create the hash table.
  */
-struct rbc_accum *
-rbc_accum_create(size_t capacity)
+struct pf_accum *
+pf_accum_create(size_t capacity)
 {
-    struct rbc_accum *htable;
+    struct pf_accum *htable;
 
-    htable = bmalloc(sizeof(struct rbc_accum));
+    htable = bmalloc(sizeof(struct pf_accum));
     htable->capacity = get_prime(capacity);
     htable->size = 0;
     htable->data = bmalloc(sizeof(struct accum_node) * htable->capacity);
@@ -77,7 +77,7 @@ rbc_accum_create(size_t capacity)
  * Free the hash table.
  */
 void
-rbc_accum_free(struct rbc_accum *htable)
+pf_accum_free(struct pf_accum *htable)
 {
     for (size_t i = 0; i < htable->capacity; i++) {
         if (htable->data[i].is_set) {
@@ -92,16 +92,16 @@ rbc_accum_free(struct rbc_accum *htable)
  * Insert an element into the hash table.
  */
 unsigned long
-rbc_accum_update(struct rbc_accum **htable, const char *val, double score)
+pf_accum_update(struct pf_accum **htable, const char *val, double score)
 {
     unsigned long key;
     unsigned long start_pos;
     struct accum_node *entry;
-    struct rbc_accum *current;
+    struct pf_accum *current;
 
     current = *htable;
     if (NEED_REHASH(current)) {
-        current = rbc_accum_rehash(current);
+        current = pf_accum_rehash(current);
         *htable = current;
     }
 
@@ -131,25 +131,25 @@ rbc_accum_update(struct rbc_accum **htable, const char *val, double score)
 /*
  * Increase table size and rehash all items.
  */
-struct rbc_accum *
-rbc_accum_rehash(struct rbc_accum *htable)
+struct pf_accum *
+pf_accum_rehash(struct pf_accum *htable)
 {
-    struct rbc_accum *rehash;
+    struct pf_accum *rehash;
     size_t new_size;
 
     /* Based from current load factor, take it down to ~25% */
     new_size = htable->size * 4;
-    rehash = rbc_accum_create(new_size);
+    rehash = pf_accum_create(new_size);
     rehash->topic = htable->topic;
     rehash->is_set = htable->is_set;
 
     for (size_t i = 0; i < htable->capacity; ++i) {
         if (htable->data[i].is_set) {
-            rbc_accum_update(
+            pf_accum_update(
                 &rehash, htable->data[i].docno, htable->data[i].val);
         }
     }
 
-    rbc_accum_free(htable);
+    pf_accum_free(htable);
     return rehash;
 }

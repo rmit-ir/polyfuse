@@ -7,7 +7,7 @@
  * that was distributed with this source code.
  */
 
-#include "rbc_topic.h"
+#include "pf_topic.h"
 
 #define LOAD_FACTOR 0.75
 #define HASH(num, ht) (int_hash(num) % ht->capacity)
@@ -55,15 +55,15 @@ get_prime(unsigned long n)
 /*
  * Create the hash table.
  */
-struct rbc_topic *
-rbc_topic_create(size_t capacity)
+struct pf_topic *
+pf_topic_create(size_t capacity)
 {
-    struct rbc_topic *htable;
+    struct pf_topic *htable;
 
     htable = bmalloc(sizeof(*htable));
     htable->capacity = get_prime(capacity);
     htable->size = 0;
-    htable->data = bmalloc(sizeof(struct rbc_accum *) * htable->capacity);
+    htable->data = bmalloc(sizeof(struct pf_accum *) * htable->capacity);
 
     return htable;
 }
@@ -72,11 +72,11 @@ rbc_topic_create(size_t capacity)
  * Free the hash table.
  */
 void
-rbc_topic_free(struct rbc_topic *htable)
+pf_topic_free(struct pf_topic *htable)
 {
     for (size_t i = 0; i < htable->capacity; i++) {
         if (htable->data[i]) {
-            rbc_accum_free(htable->data[i]);
+            pf_accum_free(htable->data[i]);
         }
     }
     free(htable->data);
@@ -87,15 +87,15 @@ rbc_topic_free(struct rbc_topic *htable)
  * Insert a string into the hash table.
  */
 unsigned long
-rbc_topic_insert(struct rbc_topic **htable, const int val)
+pf_topic_insert(struct pf_topic **htable, const int val)
 {
     unsigned long key;
-    struct rbc_accum *entry;
-    struct rbc_topic *current;
+    struct pf_accum *entry;
+    struct pf_topic *current;
 
     current = *htable;
     if (NEED_REHASH(current)) {
-        current = rbc_topic_rehash(current);
+        current = pf_topic_rehash(current);
         *htable = current;
     }
 
@@ -109,7 +109,7 @@ rbc_topic_insert(struct rbc_topic **htable, const int val)
     }
 
     if (!entry) {
-        entry = rbc_accum_create(1000);
+        entry = pf_accum_create(1000);
         entry->topic = val;
         entry->is_set = true;
         current->data[key] = entry;
@@ -123,11 +123,11 @@ rbc_topic_insert(struct rbc_topic **htable, const int val)
  * Check a value exists in the hash table. Returns the value if found, `NULL`
  * otherwise.
  */
-struct rbc_accum **
-rbc_topic_lookup(struct rbc_topic *htable, const int val)
+struct pf_accum **
+pf_topic_lookup(struct pf_topic *htable, const int val)
 {
     unsigned long key;
-    struct rbc_accum *entry;
+    struct pf_accum *entry;
 
     key = HASH(val, htable);
     entry = htable->data[key];
@@ -143,23 +143,23 @@ rbc_topic_lookup(struct rbc_topic *htable, const int val)
 /*
  * Increase table size and rehash all items.
  */
-struct rbc_topic *
-rbc_topic_rehash(struct rbc_topic *htable)
+struct pf_topic *
+pf_topic_rehash(struct pf_topic *htable)
 {
-    struct rbc_topic *rehash;
+    struct pf_topic *rehash;
     size_t new_size;
 
     /* Based from current load factor, take it down to ~25% */
     new_size = htable->size * 4;
-    rehash = rbc_topic_create(new_size);
+    rehash = pf_topic_create(new_size);
 
     for (size_t i = 0; i < htable->capacity; ++i) {
         if (htable->data[i]) {
-            rbc_topic_insert(&rehash, htable->data[i]->topic);
+            pf_topic_insert(&rehash, htable->data[i]->topic);
         }
     }
 
-    rbc_topic_free(htable);
+    pf_topic_free(htable);
 
     return rehash;
 }

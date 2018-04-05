@@ -1,7 +1,7 @@
 /*
- * This file is a part of Jing.
+ * This file is a part of Polyfuse.
  *
- * Copyright (c) 2015 The Jing Authors.
+ * Copyright (c) 2018 Luke Gallagher <luke.gallagher@rmit.edu.au>
  *
  * For the full copyright and license information, please view the LICENSE file
  * that was distributed with this source code.

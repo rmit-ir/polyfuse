@@ -7,14 +7,14 @@
  * that was distributed with this source code.
  */
 
-#include "rbc_pq.h"
+#include "pf_pq.h"
 
 #define HEAP_ROOT 1
 #define MAX_HEAP_SIZE (256 * 256 * 16 - 1)
 #define HEAP_ARRAY_SIZE (MAX_HEAP_SIZE + 1)
 
 static int
-pq_empty(const struct rbc_pq *pq);
+pq_empty(const struct pf_pq *pq);
 
 static void
 pq_heap_sift_top(struct accum_node *heap, int size);
@@ -31,10 +31,10 @@ pq_heap_cmp(struct accum_node *heap, int a, int b);
 /*
  * Create a new priority queue
  */
-struct rbc_pq *
-rbc_pq_create(size_t size)
+struct pf_pq *
+pf_pq_create(size_t size)
 {
-    struct rbc_pq *pq;
+    struct pf_pq *pq;
 
     pq = bmalloc(sizeof(*pq));
     pq->heap = bmalloc(sizeof(struct accum_node) * (size + HEAP_ROOT));
@@ -48,7 +48,7 @@ rbc_pq_create(size_t size)
  * Destory the priority queue.
  */
 void
-rbc_pq_destroy(struct rbc_pq *pq)
+pf_pq_destroy(struct pf_pq *pq)
 {
     if (pq) {
         free(pq->heap);
@@ -61,7 +61,7 @@ rbc_pq_destroy(struct rbc_pq *pq)
  * Get the size of the queue
  */
 size_t
-rbc_pq_size(const struct rbc_pq *pq)
+pf_pq_size(const struct pf_pq *pq)
 {
     if (pq) {
         return pq->size;
@@ -74,18 +74,18 @@ rbc_pq_size(const struct rbc_pq *pq)
  * Determine if the priority queue is empty.
  */
 static int
-pq_empty(const struct rbc_pq *pq)
+pq_empty(const struct pf_pq *pq)
 {
-    return 0 == rbc_pq_size(pq);
+    return 0 == pf_pq_size(pq);
 }
 
 /*
  * Determine if the priority queue is full.
  */
 static int
-pq_full(const struct rbc_pq *pq)
+pq_full(const struct pf_pq *pq)
 {
-    return pq->alloc == rbc_pq_size(pq);
+    return pq->alloc == pf_pq_size(pq);
 }
 
 /*
@@ -161,7 +161,7 @@ pq_heap_sift_bottom(struct accum_node *heap, const int size)
  * Insert a value with the specified priority.
  */
 int
-rbc_pq_enqueue(struct rbc_pq *pq, char *const val, const double prio)
+pf_pq_enqueue(struct pf_pq *pq, char *const val, const double prio)
 {
     struct accum_node new, top;
     int ret = 0;
@@ -171,13 +171,13 @@ rbc_pq_enqueue(struct rbc_pq *pq, char *const val, const double prio)
     }
 
     // skip if the new node can't make it into the heap, once the heap is full
-    if (pq_full(pq) && rbc_pq_find(pq, &top) && prio < top.val) {
+    if (pq_full(pq) && pf_pq_find(pq, &top) && prio < top.val) {
         goto ret;
     }
 
     // make room for the new item
     if (pq_full(pq)) {
-        rbc_pq_delete(pq);
+        pf_pq_delete(pq);
     }
 
     // there can be no negative priority since we are summing the RBP weight
@@ -202,7 +202,7 @@ ret:
  * Fetch the top item from the priority queue. The item is not removed.
  */
 int
-rbc_pq_find(const struct rbc_pq *pq, struct accum_node *acc_node)
+pf_pq_find(const struct pf_pq *pq, struct accum_node *acc_node)
 {
     int ret = 0;
 
@@ -223,7 +223,7 @@ rbc_pq_find(const struct rbc_pq *pq, struct accum_node *acc_node)
  * Delete the top most item from the priority queue.
  */
 int
-rbc_pq_delete(struct rbc_pq *pq)
+pf_pq_delete(struct pf_pq *pq)
 {
     int ret = 0;
 
@@ -256,7 +256,7 @@ rbc_pq_delete(struct rbc_pq *pq)
  * Peforms a fetch and delete of the top most item.
  */
 int
-rbc_pq_dequeue(struct rbc_pq *pq, struct accum_node *acc_node)
+pf_pq_dequeue(struct pf_pq *pq, struct accum_node *acc_node)
 {
     int ret = 0;
 
@@ -268,8 +268,8 @@ rbc_pq_dequeue(struct rbc_pq *pq, struct accum_node *acc_node)
         return ret;
     }
 
-    rbc_pq_find(pq, acc_node);
-    rbc_pq_delete(pq);
+    pf_pq_find(pq, acc_node);
+    pf_pq_delete(pq);
     ret = 1;
 
     return ret;
@@ -279,7 +279,7 @@ rbc_pq_dequeue(struct rbc_pq *pq, struct accum_node *acc_node)
  * Compares two pq elements with each other.
  */
 int
-rbc_pq_cmp(const struct rbc_pq *pq, int a, int b)
+pf_pq_cmp(const struct pf_pq *pq, int a, int b)
 {
     if (!pq || !pq->heap) {
         err_exit("pq_cmp is NULL");
@@ -292,7 +292,7 @@ rbc_pq_cmp(const struct rbc_pq *pq, int a, int b)
  * Swaps two pq elements with each other.
  */
 void
-rbc_pq_swap(const struct rbc_pq *pq, int a, int b)
+pf_pq_swap(const struct pf_pq *pq, int a, int b)
 {
     if (pq) {
         pq_heap_swap(pq->heap, a, b);

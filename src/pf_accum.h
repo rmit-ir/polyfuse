@@ -7,8 +7,8 @@
  * that was distributed with this source code.
  */
 
-#ifndef RBC_ACCUM_H
-#define RBC_ACCUM_H
+#ifndef PF_ACCUM_H
+#define PF_ACCUM_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -18,7 +18,7 @@
 
 #include "util.h"
 
-struct rbc_accum {
+struct pf_accum {
     size_t capacity;
     size_t size;
     struct accum_node *data;
@@ -33,16 +33,16 @@ struct accum_node {
     size_t count;
 };
 
-struct rbc_accum *
-rbc_accum_create(size_t capacity);
+struct pf_accum *
+pf_accum_create(size_t capacity);
 
 void
-rbc_accum_free(struct rbc_accum *htable);
+pf_accum_free(struct pf_accum *htable);
 
 unsigned long
-rbc_accum_update(struct rbc_accum **htable, const char *val, double score);
+pf_accum_update(struct pf_accum **htable, const char *val, double score);
 
-struct rbc_accum *
-rbc_accum_rehash(struct rbc_accum *htable);
+struct pf_accum *
+pf_accum_rehash(struct pf_accum *htable);
 
-#endif /* RBC_ACCUM_H */
+#endif /* PF_ACCUM_H */

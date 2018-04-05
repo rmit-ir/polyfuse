@@ -12,14 +12,14 @@ LDFLAGS +=
 DEBUG_CXXFLAGS = -g -O0 -DDEBUG
 
 TARGET = all
-SRC = main.cpp rbc_test.cpp
+SRC = main.cpp pf_test.cpp
 TEST_OBJ := $(SRC:.cpp=.o)
 DEP := $(SRC:.cpp=.d)
 
 # object files from ../src
 OBJDIR = ../src
-OBJ = $(OBJDIR)/rbc.o $(OBJDIR)/rbc_pq.o $(OBJDIR)/rbc_accum.o \
-	  $(OBJDIR)/rbc_topic.o $(OBJDIR)/util.o
+OBJ = $(OBJDIR)/polyfuse.o $(OBJDIR)/pf_pq.o $(OBJDIR)/pf_accum.o \
+	  $(OBJDIR)/pf_topic.o $(OBJDIR)/util.o
 
 .PHONY: test_all
 test_all: $(TARGET)

@@ -26,8 +26,8 @@ CFLAGS += -std=c11 -Wall -Wextra -pedantic -O2 -D_XOPEN_SOURCE=700 \
 LDFLAGS += -lm
 DEBUG_CFLAGS = -g -O0 -DDEBUG
 
-SRC = src/main.c src/util.c src/trec.c src/rbc_accum.c \
-          src/rbc.c src/rbc_topic.c src/rbc_pq.c
+SRC = src/main.c src/util.c src/trec.c src/pf_accum.c \
+          src/polyfuse.c src/pf_topic.c src/pf_pq.c
 OBJ := $(SRC:.c=.o)
 DEP := $(patsubst %.c,%.d,$(SRC))
 

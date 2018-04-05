@@ -10,13 +10,13 @@
 #include <CppUTest/TestHarness.h>
 
 extern "C" {
-#include "rbc.h"
+#include "polyfuse.h"
 
 extern double *weights;
 extern size_t weight_sz;
 }
 
-TEST_GROUP(rbc)
+TEST_GROUP(pf)
 {
     void setup()
     {
@@ -27,7 +27,7 @@ TEST_GROUP(rbc)
     }
 };
 
-TEST(rbc, rbc_weight_zero)
+TEST(pf, pf_weight_zero)
 {
   const double result[] = {
     0.2, 0.16, 0.128, 0.1024, 0.08192,
@@ -39,13 +39,13 @@ TEST(rbc, rbc_weight_zero)
   CHECK_EQUAL(0, weight_sz);
 
   /* try to allocate zero */
-  rbc_weight_alloc(0.8, 0);
+  pf_weight_alloc(0.8, 0);
 
   POINTERS_EQUAL(NULL, weights);
   CHECK_EQUAL(0, weight_sz);
 
   /* compute first 5 */
-  rbc_weight_alloc(0.8, 5);
+  pf_weight_alloc(0.8, 5);
 
   CHECK_EQUAL(5, weight_sz);
   DOUBLES_EQUAL(result[0], weights[0], 0.01);
@@ -55,7 +55,7 @@ TEST(rbc, rbc_weight_zero)
   DOUBLES_EQUAL(result[4], weights[4], 0.000001);
 
   /* compute next 5 */
-  rbc_weight_alloc(0.8, 10);
+  pf_weight_alloc(0.8, 10);
 
   CHECK_EQUAL(10, weight_sz);
   DOUBLES_EQUAL(result[5], weights[5], 0.0000001);
@@ -65,7 +65,7 @@ TEST(rbc, rbc_weight_zero)
   DOUBLES_EQUAL(result[9], weights[9], 0.00000001);
 
   /* try to allocate less than the last allocation 5 */
-  rbc_weight_alloc(0.8, 3);
+  pf_weight_alloc(0.8, 3);
 
   CHECK_FALSE(!weights);
   CHECK_EQUAL(10, weight_sz);
