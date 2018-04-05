@@ -18,17 +18,18 @@
 #include "trec.h"
 
 #define DEFAULT_DEPTH 1000
-#define POLYFUSE_RUNID "polyfuse-rbc"
 #define FCOMBSUM "combsum"
+#define FCOMBMNZ "combmnz"
 #define FRBC "rbc"
 #define FRRF "rrf"
 #define CMDSTR_LEN 8
 
 enum fuse_cmd {
-    TNONE,
+    TNONE = 0,
     TCOMBSUM,
     TRBC,
-    TRRF
+    TRRF,
+    TCOMBMNZ,
 };
 
 static enum fuse_cmd cmd = TNONE;
@@ -37,6 +38,13 @@ static double phi = 0.8;
 static long rrf_k = 60;
 static size_t depth = DEFAULT_DEPTH;
 char *runid = NULL;
+const char *default_runid[] = {
+    "", /* TNONE */
+    "polyfuse-combsum",
+    "polyfuse-rbc",
+    "polyfuse-rrf",
+    "polyfuse-combmnz",
+};
 
 static int
 parse_opt(int argc, char **argv);
@@ -164,7 +172,7 @@ parse_opt(int argc, char **argv)
     }
 
     if (!runid) {
-        runid = strdup(POLYFUSE_RUNID);
+        runid = strdup(default_runid[cmd]);
     }
 
     argc -= optind;
