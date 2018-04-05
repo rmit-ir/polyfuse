@@ -114,6 +114,14 @@ rbc_score(size_t rank, struct trec_entry *tentry)
 
     switch (fusion) {
     case TCOMBSUM:
+    case TCOMBMNZ:
+        /*
+         * CombMNZ:
+         *
+         * The count of updates are tracked within `rbc_accum_update`. The
+         * multiplication for CombMNZ is applied when the entry is added to
+         * the priority queue in `rbc_present`.
+         */
         s = tentry->score;
         break;
     case TRBC:
@@ -121,14 +129,6 @@ rbc_score(size_t rank, struct trec_entry *tentry)
         break;
     case TRRF:
         s = 1 / ((double)rrf_k + rank);
-        break;
-    case TCOMBMNZ:
-        /*
-         * The count of updates are tracked within `rbc_accum_update`. The
-         * multiplication for CombMNZ is applied when the entry is added to
-         * the priority queue in `rbc_present`.
-         */
-        s = tentry->score;
         break;
     default:
         break;
