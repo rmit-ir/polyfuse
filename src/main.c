@@ -129,8 +129,8 @@ parse_opt(int argc, char **argv)
         }
 
         if (TNONE == cmd) {
-            err_exit("unkown fusion command '%s', available commands are: "
-                     "combsum, combmnz, rbc, rrf",
+            err_exit("unkown fusion command '%s'\n\navailable commands are:\n"
+                     "  combsum, combmnz, rbc, rrf",
                 argv[optind]);
         }
 
