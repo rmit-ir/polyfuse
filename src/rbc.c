@@ -14,7 +14,7 @@ struct topic_list {
     size_t size;
 };
 
-static int fusion = 0;
+static enum fusetype fusion = TNONE;
 static struct rbc_topic *topic_tab = NULL;
 static struct topic_list qids = {NULL, 0};
 
@@ -96,7 +96,7 @@ rbc_accumulate(struct trec_run *r)
 }
 
 void
-rbc_set_fusion(const int type)
+rbc_set_fusion(const enum fusetype type)
 {
     fusion = type;
 }
@@ -112,15 +112,26 @@ rbc_score(size_t rank, struct trec_entry *tentry)
 {
     double s = 0.0;
 
-    if (1 == fusion) {
-        /* combsum */
+    switch (fusion) {
+    case TCOMBSUM:
         s = tentry->score;
-    } else if (2 == fusion) {
-        /* rbc */
+        break;
+    case TRBC:
         s = weights[rank - 1];
-    } else if (3 == fusion) {
-        /* rrf */
+        break;
+    case TRRF:
         s = 1 / ((double)rrf_k + rank);
+        break;
+    case TCOMBMNZ:
+        /*
+         * The count of updates are tracked within `rbc_accum_update`. The
+         * multiplication for CombMNZ is applied when the entry is added to
+         * the priority queue in `rbc_present`.
+         */
+        s = tentry->score;
+        break;
+    default:
+        break;
     }
 
     return s;
@@ -140,7 +151,7 @@ rbc_present(FILE *stream, const char *id, size_t depth)
     }
 
     /* combsum normalization */
-    if (1 == fusion) {
+    if (TCOMBSUM == fusion) {
         norm = depth;
     }
 
@@ -150,10 +161,18 @@ rbc_present(FILE *stream, const char *id, size_t depth)
         struct rbc_pq *pq = rbc_pq_create(weight_sz);
         // this is why we use linear probing
         for (size_t j = 0; j < curr->capacity; j++) {
+            double score = 0.0;
             if (!curr->data[j].is_set) {
                 continue;
             }
-            rbc_pq_enqueue(pq, curr->data[j].docno, curr->data[j].val);
+            score = curr->data[j].val;
+            /*
+             * Apply CombMNZ multiplication
+             */
+            if (TCOMBMNZ == fusion) {
+                score *= curr->data[j].count;
+            }
+            rbc_pq_enqueue(pq, curr->data[j].docno, score);
         }
         struct accum_node *res =
             bmalloc(sizeof(struct accum_node) * weight_sz);

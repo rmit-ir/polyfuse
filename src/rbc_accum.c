@@ -113,10 +113,12 @@ rbc_accum_update(struct rbc_accum **htable, const char *val, double score)
             entry->docno = strdup(val);
             entry->val = score;
             entry->is_set = true;
+            entry->count = 1;
             ++current->size;
             break;
         } else if (0 == strncmp(entry->docno, val, strlen(entry->docno))) {
             entry->val += score;
+            entry->count++;
             break;
         }
         ++key;

@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "fusetype.h"
 #include "rbc_pq.h"
 #include "rbc_topic.h"
 #include "trec.h"
@@ -31,7 +32,7 @@ void
 rbc_accumulate(struct trec_run *r);
 
 void
-rbc_set_fusion(const int type);
+rbc_set_fusion(const enum fusetype type);
 
 void
 rbc_set_rrf_k(const long k);

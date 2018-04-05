@@ -14,6 +14,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "fusetype.h"
 #include "rbc.h"
 #include "trec.h"
 
@@ -24,15 +25,7 @@
 #define FRRF "rrf"
 #define CMDSTR_LEN 8
 
-enum fuse_cmd {
-    TNONE = 0,
-    TCOMBSUM,
-    TRBC,
-    TRRF,
-    TCOMBMNZ,
-};
-
-static enum fuse_cmd cmd = TNONE;
+static enum fusetype cmd = TNONE;
 static char cmd_str[CMDSTR_LEN] = {0};
 static double phi = 0.8;
 static long rrf_k = 60;
@@ -40,10 +33,7 @@ static size_t depth = DEFAULT_DEPTH;
 char *runid = NULL;
 const char *default_runid[] = {
     "", /* TNONE */
-    "polyfuse-combsum",
-    "polyfuse-rbc",
-    "polyfuse-rrf",
-    "polyfuse-combmnz",
+    "polyfuse-combsum", "polyfuse-rbc", "polyfuse-rrf", "polyfuse-combmnz",
 };
 
 static int
@@ -130,12 +120,18 @@ parse_opt(int argc, char **argv)
         } else if (0 == strncmp(argv[optind], FRRF, strlen(argv[optind]))) {
             cmd = TRRF;
             strncpy(cmd_str, FRRF, CMDSTR_LEN);
+        } else if (0 ==
+                   strncmp(argv[optind], FCOMBMNZ, strlen(argv[optind]))) {
+            cmd = TCOMBMNZ;
+            strncpy(cmd_str, FCOMBMNZ, CMDSTR_LEN);
         } else {
             cmd = TNONE;
         }
 
         if (TNONE == cmd) {
-            err_exit("unkown fusion command '%s'", argv[optind]);
+            err_exit("unkown fusion command '%s', available commands are: "
+                     "combsum, combmnz, rbc, rrf",
+                argv[optind]);
         }
 
         optind++;
@@ -199,6 +195,7 @@ usage(void)
                     "  -v           display version and exit\n"
                     "\nfusion commands:\n"
                     "  combsum      CombSUM\n"
+                    "  combmnz      CombMNZ\n"
                     "  rbc          Rank-biased centroids\n"
                     "  rrf          Recipocal rank fusion\n"
                     "\nrbc options:\n"

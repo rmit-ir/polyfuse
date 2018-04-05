@@ -30,6 +30,7 @@ struct accum_node {
     char *docno;
     double val;
     bool is_set;
+    size_t count;
 };
 
 struct rbc_accum *
