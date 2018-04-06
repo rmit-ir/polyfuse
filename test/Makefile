@@ -12,7 +12,7 @@ LDFLAGS +=
 DEBUG_CXXFLAGS = -g -O0 -DDEBUG
 
 TARGET = all
-SRC = main.cpp pf_test.cpp
+SRC = main.cpp pf_test.cpp pf_pq_test.cpp
 TEST_OBJ := $(SRC:.cpp=.o)
 DEP := $(SRC:.cpp=.d)
 

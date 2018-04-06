@@ -10,8 +10,6 @@
 #include "pf_pq.h"
 
 #define HEAP_ROOT 1
-#define MAX_HEAP_SIZE (256 * 256 * 16 - 1)
-#define HEAP_ARRAY_SIZE (MAX_HEAP_SIZE + 1)
 
 static int
 pq_empty(const struct pf_pq *pq);
@@ -178,11 +176,6 @@ pf_pq_enqueue(struct pf_pq *pq, char *const val, const double prio)
     // make room for the new item
     if (pq_full(pq)) {
         pf_pq_delete(pq);
-    }
-
-    // there can be no negative priority since we are summing the RBP weight
-    if (prio < 0) {
-        goto ret;
     }
 
     new.val = prio;
