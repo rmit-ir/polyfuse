@@ -15,16 +15,10 @@ static int
 pq_empty(const struct pq *pq);
 
 static void
-pq_heap_sift_top(struct accum_node *heap, int size);
+pq_sift_up(struct pq *pq, size_t n);
 
 static void
-pq_heap_sift_bottom(struct accum_node *heap, int size);
-
-static void
-pq_heap_swap(struct accum_node *heap, int a, int b);
-
-static int
-pq_heap_cmp(struct accum_node *heap, int a, int b);
+pq_sift_down(struct pq *pq, size_t n);
 
 /*
  * Create a new priority queue
@@ -87,71 +81,39 @@ pq_full(const struct pq *pq)
 }
 
 /*
- * Sift the root element down into the min heap's correct place.
+ * Sift an element up into its correct place.
  */
 static void
-pq_heap_sift_top(struct accum_node *heap, const int size)
+pq_sift_up(struct pq *pq, size_t n)
 {
-    int current, height;
+    struct accum_node *heap = pq->heap;
 
-    if (!heap || size < 2) {
-        return;
+    while (n > 1 && heap[n / 2].val > heap[n].val) {
+        pq_swap(pq, n, n / 2);
+        n = n / 2;
     }
-
-    current = HEAP_ROOT;
-    height = floor(log2(size));
-
-    do {
-        int min, left, right;
-
-        left = current * 2;
-        right = current * 2 + 1;
-        min = right;
-
-        /* The current node has no children. */
-        if (left > size) {
-            break;
-        }
-
-        /*
-         * Check the left child if the current node does not have a right
-         * child or if the left child is smaller than the right child.
-         */
-        if (right > size) {
-            min = left;
-        } else if (heap[left].val <= heap[right].val) {
-            min = left;
-        }
-
-        if ((pq_heap_cmp(heap, current, min)) < 0) {
-            break;
-        }
-
-        pq_heap_swap(heap, current, min);
-        current = min;
-    } while (--height);
 }
 
 /*
- * Sift the last inserted element into the min heap's correct place.
+ * Sift an element down into its correct place.
  */
 static void
-pq_heap_sift_bottom(struct accum_node *heap, const int size)
+pq_sift_down(struct pq *pq, size_t n)
 {
-    int current, parent;
+    struct accum_node *heap = pq->heap;
 
-    if (!heap || size < 2) {
-        return;
-    }
+    while (2 * n <= pq_size(pq)) {
+        size_t j = 2 * n;
+        if (j < pq_size(pq) && heap[j].val > heap[j + 1].val) {
+            j++;
+        }
 
-    current = size;
-    parent = size / 2;
+        if (!(heap[n].val > heap[j].val)) {
+            break;
+        }
 
-    while (parent > 0 && heap[current].val < heap[parent].val) {
-        pq_heap_swap(heap, current, parent);
-
-        current = parent;
-        parent /= 2;
+        pq_swap(pq, n, j);
+        n = j;
     }
 }
 
@@ -159,7 +121,8 @@ pq_heap_sift_bottom(struct accum_node *heap, const int size)
  * Insert a value with the specified priority.
  */
 int
-pq_enqueue(struct pq *pq, char *const val, const double prio)
+pq_insert(
+    struct pq *pq, char *const val, const double prio, const size_t count)
 {
     struct accum_node new, top;
     int ret = 0;
@@ -169,7 +132,7 @@ pq_enqueue(struct pq *pq, char *const val, const double prio)
     }
 
     // skip if the new node can't make it into the heap, once the heap is full
-    if (pq_full(pq) && pq_find(pq, &top) && prio < top.val) {
+    if (pq_full(pq) && pq_min(pq, &top) && prio < top.val) {
         goto ret;
     }
 
@@ -181,10 +144,11 @@ pq_enqueue(struct pq *pq, char *const val, const double prio)
     new.val = prio;
     new.docno = val; // holds a reference to the existing string
     new.is_set = true;
+    new.count = count;
 
     /* heap index begins at 1 */
     pq->heap[++pq->size] = new;
-    pq_heap_sift_bottom(pq->heap, pq->size);
+    pq_sift_up(pq, pq_size(pq));
     ret = 1;
 
 ret:
@@ -192,21 +156,45 @@ ret:
 }
 
 /*
- * Fetch the top item from the priority queue. The item is not removed.
+ * Peforms a fetch and delete of the top most item.
  */
 int
-pq_find(const struct pq *pq, struct accum_node *acc_node)
+pq_remove(struct pq *pq, struct accum_node *res)
 {
     int ret = 0;
 
-    if (!pq || !pq->heap || !acc_node) {
+    if (!pq || !pq->heap || !res) {
         return ret;
     }
 
     if (pq_empty(pq)) {
         return ret;
     }
-    *acc_node = pq->heap[HEAP_ROOT];
+
+    pq_min(pq, res);
+    pq_delete(pq);
+    ret = 1;
+
+    return ret;
+}
+
+/*
+ * Fetch the top item from the priority queue. The item is not removed.
+ */
+int
+pq_min(const struct pq *pq, struct accum_node *res)
+{
+    int ret = 0;
+
+    if (!pq || !pq->heap || !res) {
+        return ret;
+    }
+
+    if (pq_empty(pq)) {
+        return ret;
+    }
+
+    *res = pq->heap[HEAP_ROOT];
     ret = 1;
 
     return ret;
@@ -229,16 +217,13 @@ pq_delete(struct pq *pq)
     }
 
     /*
-     * 1. Swap the root with the last node in the heap
+     * 1. Move the root to the last spot in the heap
      * 2. Shrink the heap by 1
      * 3. Sift the root node down into it's correct place
-     *
-     * No need for the swap, since we're deleting it anyway. Just move the
-     * last node to the root of the heap.
      */
     pq->heap[HEAP_ROOT] = pq->heap[pq->size];
     pq->size--;
-    pq_heap_sift_top(pq->heap, pq->size);
+    pq_sift_down(pq, 1);
 
     ret = 1;
 
@@ -246,78 +231,39 @@ pq_delete(struct pq *pq)
 }
 
 /*
- * Peforms a fetch and delete of the top most item.
+ * Compares two elements with each other.
  */
 int
-pq_dequeue(struct pq *pq, struct accum_node *acc_node)
-{
-    int ret = 0;
-
-    if (!pq || !pq->heap || !acc_node) {
-        return ret;
-    }
-
-    if (pq_empty(pq)) {
-        return ret;
-    }
-
-    pq_find(pq, acc_node);
-    pq_delete(pq);
-    ret = 1;
-
-    return ret;
-}
-
-/*
- * Compares two pq elements with each other.
- */
-int
-pq_cmp(const struct pq *pq, int a, int b)
+pq_cmp(const struct pq *pq, size_t a, size_t b)
 {
     if (!pq || !pq->heap) {
         err_exit("pq_cmp is NULL");
     }
 
-    return pq_heap_cmp(pq->heap, a, b);
-}
+    struct accum_node *heap = pq->heap;
 
-/*
- * Swaps two pq elements with each other.
- */
-void
-pq_swap(const struct pq *pq, int a, int b)
-{
-    if (pq) {
-        pq_heap_swap(pq->heap, a, b);
-    }
-}
-
-/*
- * Swap two elements with each other.
- */
-static void
-pq_heap_swap(struct accum_node *heap, int a, int b)
-{
-    struct accum_node tmp;
-
-    if (heap) {
-        tmp = heap[a];
-        heap[a] = heap[b];
-        heap[b] = tmp;
-    }
-}
-
-/*
- * Compare two heap elements with each other.
- */
-static int
-pq_heap_cmp(struct accum_node *heap, int a, int b)
-{
     if (heap[a].val == heap[b].val) {
         return 0;
     } else if (heap[a].val < heap[b].val) {
         return -1;
     } else {
         return 1;
+    }
+}
+
+/*
+ * Swaps two elements with each other.
+ */
+void
+pq_swap(const struct pq *pq, size_t a, size_t b)
+{
+    if (pq) {
+        struct accum_node *heap = pq->heap;
+        struct accum_node tmp;
+        if (heap) {
+            tmp = heap[a];
+            heap[a] = heap[b];
+            heap[b] = tmp;
+        }
     }
 }

@@ -15,20 +15,20 @@ extern "C" {
 struct pq *pq;
 struct accum_node stubs[] = {
   {(char *)"DOC-1", 1.0, true, 1},
-  {(char *)"DOC-2", 2.0, true, 1},
-  {(char *)"DOC-3", 3.0, true, 1},
-  {(char *)"DOC-4", 4.0, true, 1},
-  {(char *)"DOC-5", 5.0, true, 1},
-  {(char *)"DOC-6", 6.0, true, 1},
-  {(char *)"DOC-7", 7.0, true, 1},
-  {(char *)"DOC-8", 8.0, true, 1},
+  {(char *)"DOC-2", 2.0, true, 2},
+  {(char *)"DOC-3", 3.0, true, 3},
+  {(char *)"DOC-4", 4.0, true, 4},
+  {(char *)"DOC-5", 5.0, true, 5},
+  {(char *)"DOC-6", 6.0, true, 6},
+  {(char *)"DOC-7", 7.0, true, 7},
+  {(char *)"DOC-8", 8.0, true, 8},
 };
 
 void
 helper_fill_pq()
 {
   for (size_t i = 0; i < 8; i++) {
-    pq_enqueue(pq, stubs[i].docno, stubs[i].val);
+    pq_insert(pq, stubs[i].docno, stubs[i].val, stubs[i].count);
   }
 }
 }
@@ -55,7 +55,7 @@ TEST(pq, empty_pq_is_empty)
 
   CHECK_EQUAL(0, pq_size(pq));
   CHECK_EQUAL(0, pq_delete(pq));
-  CHECK_EQUAL(0, pq_dequeue(pq, &dummy));
+  CHECK_EQUAL(0, pq_remove(pq, &dummy));
 }
 
 /*
@@ -65,7 +65,7 @@ TEST(pq, can_insert_item)
 {
   struct accum_node dummy;
 
-  pq_enqueue(pq, dummy.docno, dummy.val);
+  pq_insert(pq, dummy.docno, dummy.val, dummy.count);
 
   CHECK_EQUAL(1, pq_size(pq));
 }
@@ -79,7 +79,7 @@ TEST(pq, can_insert_neg_item)
     (char *)"DOC-1", -7.0, true, 1
   };
 
-  pq_enqueue(pq, dummy.docno, dummy.val);
+  pq_insert(pq, dummy.docno, dummy.val, dummy.count);
 
   CHECK_EQUAL(1, pq_size(pq));
 }
@@ -95,10 +95,10 @@ TEST(pq, skip_insert_full_and_low_priority)
 
   helper_fill_pq();
 
-  pq_enqueue(pq, skipnode.docno, skipnode.val);
+  pq_insert(pq, skipnode.docno, skipnode.val, skipnode.count);
 
   struct accum_node res;
-  pq_find(pq, &res);
+  pq_min(pq, &res);
   CHECK_EQUAL(8, pq_size(pq));
   DOUBLES_EQUAL(1.0, res.val, 0.01);
 }
@@ -110,7 +110,7 @@ TEST(pq, can_delete_item)
 {
   struct accum_node dummy;
 
-  pq_enqueue(pq, dummy.docno, dummy.val);
+  pq_insert(pq, dummy.docno, dummy.val, dummy.count);
   pq_delete(pq);
 
   CHECK_EQUAL(0, pq_size(pq));
@@ -122,38 +122,38 @@ TEST(pq, can_delete_item)
 TEST(pq, fetch_top_item)
 {
   // insert 3.0, 2.0, 1.0
-  pq_enqueue(pq, stubs[2].docno, stubs[2].val);
-  pq_enqueue(pq, stubs[1].docno, stubs[1].val);
-  pq_enqueue(pq, stubs[0].docno, stubs[0].val);
+  pq_insert(pq, stubs[2].docno, stubs[2].val, stubs[2].count);
+  pq_insert(pq, stubs[1].docno, stubs[1].val, stubs[1].count);
+  pq_insert(pq, stubs[0].docno, stubs[0].val, stubs[0].count);
   CHECK_EQUAL(3, pq_size(pq));
 
   struct accum_node res;
-  pq_find(pq, &res);
+  pq_min(pq, &res);
   CHECK_EQUAL(3, pq_size(pq));
   DOUBLES_EQUAL(1.0, res.val, 0.01);
 }
 
 /*
- * Can dequeue items in priority order
+ * Can remove items in priority order
  */
-TEST(pq, dequeue_items)
+TEST(pq, remove_items)
 {
   // insert 3.0, 2.0, 1.0
-  pq_enqueue(pq, stubs[2].docno, stubs[2].val);
-  pq_enqueue(pq, stubs[1].docno, stubs[1].val);
-  pq_enqueue(pq, stubs[0].docno, stubs[0].val);
+  pq_insert(pq, stubs[2].docno, stubs[2].val, stubs[2].count);
+  pq_insert(pq, stubs[1].docno, stubs[1].val, stubs[1].count);
+  pq_insert(pq, stubs[0].docno, stubs[0].val, stubs[0].count);
   CHECK_EQUAL(3, pq_size(pq));
 
   struct accum_node res;
-  pq_dequeue(pq, &res);
+  pq_remove(pq, &res);
   CHECK_EQUAL(2, pq_size(pq));
   DOUBLES_EQUAL(1.0, res.val, 0.01);
 
-  pq_dequeue(pq, &res);
+  pq_remove(pq, &res);
   CHECK_EQUAL(1, pq_size(pq));
   DOUBLES_EQUAL(2.0, res.val, 0.01);
 
-  pq_dequeue(pq, &res);
+  pq_remove(pq, &res);
   CHECK_EQUAL(0, pq_size(pq));
   DOUBLES_EQUAL(3.0, res.val, 0.01);
 }

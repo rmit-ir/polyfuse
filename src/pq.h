@@ -30,22 +30,23 @@ void
 pq_destroy(struct pq *pq);
 
 int
-pq_enqueue(struct pq *pq, char *const val, const double prio);
+pq_insert(
+    struct pq *pq, char *const val, const double prio, const size_t count);
 
 int
-pq_find(const struct pq *pq, struct accum_node *acc_node);
+pq_remove(struct pq *pq, struct accum_node *res);
+
+int
+pq_min(const struct pq *pq, struct accum_node *res);
 
 int
 pq_delete(struct pq *pq);
 
 int
-pq_dequeue(struct pq *pq, struct accum_node *acc_node);
-
-int
-pq_cmp(const struct pq *pq, int a, int b);
+pq_cmp(const struct pq *pq, size_t a, size_t b);
 
 void
-pq_swap(const struct pq *pq, int a, int b);
+pq_swap(const struct pq *pq, size_t a, size_t b);
 
 size_t
 pq_size(const struct pq *pq);

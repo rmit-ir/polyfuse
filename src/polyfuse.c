@@ -186,13 +186,13 @@ pf_present(FILE *stream, const char *id, size_t depth)
                 /* +1 to `log` to avoid log(1) = 0 */
                 score *= log(curr->data[j].count + 1);
             }
-            pq_enqueue(pq, curr->data[j].docno, score);
+            pq_insert(pq, curr->data[j].docno, score, curr->data[j].count);
         }
         struct accum_node *res =
             bmalloc(sizeof(struct accum_node) * weight_sz);
         size_t sz = 0;
         while (sz < weight_sz && pq->size > 0) {
-            pq_dequeue(pq, res + sz++);
+            pq_remove(pq, res + sz++);
         }
         for (size_t j = weight_sz, k = 1; j > 0; j--) {
             size_t idx = j - 1;
