@@ -124,6 +124,17 @@ pf_score(size_t rank, size_t n, struct trec_entry *tentry)
          */
         s = tentry->score;
         break;
+    case TISR:
+    case TLOGISR:
+        /*
+         * ISR and logISR:
+         *
+         * The count of updates are tracked within `pf_accum_update`. The
+         * multiplication for ISR, logISR is applied when the entry is added to
+         * the priority queue in `pf_present`.
+         */
+        s = (double)1 / pow(rank, 2);
+        break;
     case TRBC:
         s = weights[rank - 1];
         break;
@@ -167,10 +178,13 @@ pf_present(FILE *stream, const char *id, size_t depth)
             }
             score = curr->data[j].val;
             /*
-             * Apply CombMNZ multiplication
+             * Apply CombMNZ, ISR or logISR multiplication
              */
-            if (TCOMBMNZ == fusion) {
+            if (TCOMBMNZ == fusion || TISR == fusion) {
                 score *= curr->data[j].count;
+            } else if (TLOGISR == fusion) {
+                /* +1 to `log` to avoid log(1) = 0 */
+                score *= log(curr->data[j].count + 1);
             }
             pf_pq_enqueue(pq, curr->data[j].docno, score);
         }

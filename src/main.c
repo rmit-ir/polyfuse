@@ -19,13 +19,15 @@
 #include "trec.h"
 
 #define DEFAULT_DEPTH 1000
+#define FBORDA "borda"
 #define FCOMBSUM "combsum"
 #define FCOMBMNZ "combmnz"
-#define FBORDA "borda"
+#define FISR "isr"
+#define FLOGISR "logisr"
 #define FRBC "rbc"
 #define FRRF "rrf"
 #define CMDSTR_LEN 8
-#define AVAILCMDS "  borda, combsum, combmnz, rbc, rrf",
+#define AVAILCMDS "  borda, combsum, combmnz, isr, logisr, rbc, rrf",
 
 static enum fusetype cmd = TNONE;
 static char cmd_str[CMDSTR_LEN] = {0};
@@ -36,7 +38,7 @@ char *runid = NULL;
 const char *default_runid[] = {
     "", /* TNONE */
     "polyfuse-combsum", "polyfuse-rbc", "polyfuse-rrf", "polyfuse-combmnz",
-    "polyfuse-borda",
+    "polyfuse-borda", "polyfuse-isr", "polyfuse-logisr",
 };
 
 static int
@@ -134,6 +136,12 @@ parse_opt(int argc, char **argv)
         } else if (0 == strncmp(argv[optind], FBORDA, strlen(argv[optind]))) {
             cmd = TBORDA;
             strncpy(cmd_str, FBORDA, CMDSTR_LEN);
+        } else if (0 == strncmp(argv[optind], FISR, strlen(argv[optind]))) {
+            cmd = TISR;
+            strncpy(cmd_str, FISR, CMDSTR_LEN);
+        } else if (0 == strncmp(argv[optind], FLOGISR, strlen(argv[optind]))) {
+            cmd = TLOGISR;
+            strncpy(cmd_str, FLOGISR, CMDSTR_LEN);
         } else {
             cmd = TNONE;
         }
@@ -207,6 +215,8 @@ usage(void)
                     "  borda        Borda count\n"
                     "  combsum      CombSUM\n"
                     "  combmnz      CombMNZ\n"
+                    "  isr          Inverse square rank\n"
+                    "  logisr       Logarithmic inverse square rank\n"
                     "  rbc          Rank-biased centroids\n"
                     "  rrf          Recipocal rank fusion\n"
                     "\nrbc options:\n"
