@@ -10,14 +10,14 @@
 #ifndef PF_H
 #define PF_H
 
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
 #include "fusetype.h"
-#include "pf_pq.h"
 #include "pf_topic.h"
+#include "pq.h"
 #include "trec.h"
 
 void

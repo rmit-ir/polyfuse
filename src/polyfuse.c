@@ -169,7 +169,7 @@ pf_present(FILE *stream, const char *id, size_t depth)
     for (size_t i = 0; i < qids.size; i++) {
         struct pf_accum *curr;
         curr = *pf_topic_lookup(topic_tab, qids.ary[i]);
-        struct pf_pq *pq = pf_pq_create(weight_sz);
+        struct pq *pq = pq_create(weight_sz);
         // this is why we use linear probing
         for (size_t j = 0; j < curr->capacity; j++) {
             double score = 0.0;
@@ -186,13 +186,13 @@ pf_present(FILE *stream, const char *id, size_t depth)
                 /* +1 to `log` to avoid log(1) = 0 */
                 score *= log(curr->data[j].count + 1);
             }
-            pf_pq_enqueue(pq, curr->data[j].docno, score);
+            pq_enqueue(pq, curr->data[j].docno, score);
         }
         struct accum_node *res =
             bmalloc(sizeof(struct accum_node) * weight_sz);
         size_t sz = 0;
         while (sz < weight_sz && pq->size > 0) {
-            pf_pq_dequeue(pq, res + sz++);
+            pq_dequeue(pq, res + sz++);
         }
         for (size_t j = weight_sz, k = 1; j > 0; j--) {
             size_t idx = j - 1;
@@ -202,6 +202,6 @@ pf_present(FILE *stream, const char *id, size_t depth)
             }
         }
         free(res);
-        pf_pq_destroy(pq);
+        pq_destroy(pq);
     }
 }

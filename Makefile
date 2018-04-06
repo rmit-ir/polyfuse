@@ -27,7 +27,7 @@ LDFLAGS += -lm
 DEBUG_CFLAGS = -g -O0 -DDEBUG
 
 SRC = src/main.c src/util.c src/trec.c src/pf_accum.c \
-          src/polyfuse.c src/pf_topic.c src/pf_pq.c
+          src/polyfuse.c src/pf_topic.c src/pq.c
 OBJ := $(SRC:.c=.o)
 DEP := $(patsubst %.c,%.d,$(SRC))
 

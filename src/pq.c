@@ -7,12 +7,12 @@
  * that was distributed with this source code.
  */
 
-#include "pf_pq.h"
+#include "pq.h"
 
 #define HEAP_ROOT 1
 
 static int
-pq_empty(const struct pf_pq *pq);
+pq_empty(const struct pq *pq);
 
 static void
 pq_heap_sift_top(struct accum_node *heap, int size);
@@ -29,10 +29,10 @@ pq_heap_cmp(struct accum_node *heap, int a, int b);
 /*
  * Create a new priority queue
  */
-struct pf_pq *
-pf_pq_create(size_t size)
+struct pq *
+pq_create(size_t size)
 {
-    struct pf_pq *pq;
+    struct pq *pq;
 
     pq = bmalloc(sizeof(*pq));
     pq->heap = bmalloc(sizeof(struct accum_node) * (size + HEAP_ROOT));
@@ -46,7 +46,7 @@ pf_pq_create(size_t size)
  * Destory the priority queue.
  */
 void
-pf_pq_destroy(struct pf_pq *pq)
+pq_destroy(struct pq *pq)
 {
     if (pq) {
         free(pq->heap);
@@ -59,7 +59,7 @@ pf_pq_destroy(struct pf_pq *pq)
  * Get the size of the queue
  */
 size_t
-pf_pq_size(const struct pf_pq *pq)
+pq_size(const struct pq *pq)
 {
     if (pq) {
         return pq->size;
@@ -72,18 +72,18 @@ pf_pq_size(const struct pf_pq *pq)
  * Determine if the priority queue is empty.
  */
 static int
-pq_empty(const struct pf_pq *pq)
+pq_empty(const struct pq *pq)
 {
-    return 0 == pf_pq_size(pq);
+    return 0 == pq_size(pq);
 }
 
 /*
  * Determine if the priority queue is full.
  */
 static int
-pq_full(const struct pf_pq *pq)
+pq_full(const struct pq *pq)
 {
-    return pq->alloc == pf_pq_size(pq);
+    return pq->alloc == pq_size(pq);
 }
 
 /*
@@ -159,7 +159,7 @@ pq_heap_sift_bottom(struct accum_node *heap, const int size)
  * Insert a value with the specified priority.
  */
 int
-pf_pq_enqueue(struct pf_pq *pq, char *const val, const double prio)
+pq_enqueue(struct pq *pq, char *const val, const double prio)
 {
     struct accum_node new, top;
     int ret = 0;
@@ -169,13 +169,13 @@ pf_pq_enqueue(struct pf_pq *pq, char *const val, const double prio)
     }
 
     // skip if the new node can't make it into the heap, once the heap is full
-    if (pq_full(pq) && pf_pq_find(pq, &top) && prio < top.val) {
+    if (pq_full(pq) && pq_find(pq, &top) && prio < top.val) {
         goto ret;
     }
 
     // make room for the new item
     if (pq_full(pq)) {
-        pf_pq_delete(pq);
+        pq_delete(pq);
     }
 
     new.val = prio;
@@ -195,7 +195,7 @@ ret:
  * Fetch the top item from the priority queue. The item is not removed.
  */
 int
-pf_pq_find(const struct pf_pq *pq, struct accum_node *acc_node)
+pq_find(const struct pq *pq, struct accum_node *acc_node)
 {
     int ret = 0;
 
@@ -216,7 +216,7 @@ pf_pq_find(const struct pf_pq *pq, struct accum_node *acc_node)
  * Delete the top most item from the priority queue.
  */
 int
-pf_pq_delete(struct pf_pq *pq)
+pq_delete(struct pq *pq)
 {
     int ret = 0;
 
@@ -249,7 +249,7 @@ pf_pq_delete(struct pf_pq *pq)
  * Peforms a fetch and delete of the top most item.
  */
 int
-pf_pq_dequeue(struct pf_pq *pq, struct accum_node *acc_node)
+pq_dequeue(struct pq *pq, struct accum_node *acc_node)
 {
     int ret = 0;
 
@@ -261,8 +261,8 @@ pf_pq_dequeue(struct pf_pq *pq, struct accum_node *acc_node)
         return ret;
     }
 
-    pf_pq_find(pq, acc_node);
-    pf_pq_delete(pq);
+    pq_find(pq, acc_node);
+    pq_delete(pq);
     ret = 1;
 
     return ret;
@@ -272,7 +272,7 @@ pf_pq_dequeue(struct pf_pq *pq, struct accum_node *acc_node)
  * Compares two pq elements with each other.
  */
 int
-pf_pq_cmp(const struct pf_pq *pq, int a, int b)
+pq_cmp(const struct pq *pq, int a, int b)
 {
     if (!pq || !pq->heap) {
         err_exit("pq_cmp is NULL");
@@ -285,7 +285,7 @@ pf_pq_cmp(const struct pf_pq *pq, int a, int b)
  * Swaps two pq elements with each other.
  */
 void
-pf_pq_swap(const struct pf_pq *pq, int a, int b)
+pq_swap(const struct pq *pq, int a, int b)
 {
     if (pq) {
         pq_heap_swap(pq->heap, a, b);

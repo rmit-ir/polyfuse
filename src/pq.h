@@ -17,37 +17,37 @@
 #include "pf_accum.h"
 #include "util.h"
 
-struct pf_pq {
+struct pq {
     struct accum_node *heap;
     size_t size;
     size_t alloc;
 };
 
-struct pf_pq *
-pf_pq_create(size_t size);
+struct pq *
+pq_create(size_t size);
 
 void
-pf_pq_destroy(struct pf_pq *pq);
+pq_destroy(struct pq *pq);
 
 int
-pf_pq_enqueue(struct pf_pq *pq, char *const val, const double prio);
+pq_enqueue(struct pq *pq, char *const val, const double prio);
 
 int
-pf_pq_find(const struct pf_pq *pq, struct accum_node *acc_node);
+pq_find(const struct pq *pq, struct accum_node *acc_node);
 
 int
-pf_pq_delete(struct pf_pq *pq);
+pq_delete(struct pq *pq);
 
 int
-pf_pq_dequeue(struct pf_pq *pq, struct accum_node *acc_node);
+pq_dequeue(struct pq *pq, struct accum_node *acc_node);
 
 int
-pf_pq_cmp(const struct pf_pq *pq, int a, int b);
+pq_cmp(const struct pq *pq, int a, int b);
 
 void
-pf_pq_swap(const struct pf_pq *pq, int a, int b);
+pq_swap(const struct pq *pq, int a, int b);
 
 size_t
-pf_pq_size(const struct pf_pq *pq);
+pq_size(const struct pq *pq);
 
 #endif /* PF_PQ_H */
