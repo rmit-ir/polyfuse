@@ -21,9 +21,11 @@
 #define DEFAULT_DEPTH 1000
 #define FCOMBSUM "combsum"
 #define FCOMBMNZ "combmnz"
+#define FBORDA "borda"
 #define FRBC "rbc"
 #define FRRF "rrf"
 #define CMDSTR_LEN 8
+#define AVAILCMDS "  borda, combsum, combmnz, rbc, rrf",
 
 static enum fusetype cmd = TNONE;
 static char cmd_str[CMDSTR_LEN] = {0};
@@ -34,6 +36,7 @@ char *runid = NULL;
 const char *default_runid[] = {
     "", /* TNONE */
     "polyfuse-combsum", "polyfuse-rbc", "polyfuse-rrf", "polyfuse-combmnz",
+    "polyfuse-borda",
 };
 
 static int
@@ -128,13 +131,16 @@ parse_opt(int argc, char **argv)
                    strncmp(argv[optind], FCOMBMNZ, strlen(argv[optind]))) {
             cmd = TCOMBMNZ;
             strncpy(cmd_str, FCOMBMNZ, CMDSTR_LEN);
+        } else if (0 == strncmp(argv[optind], FBORDA, strlen(argv[optind]))) {
+            cmd = TBORDA;
+            strncpy(cmd_str, FBORDA, CMDSTR_LEN);
         } else {
             cmd = TNONE;
         }
 
         if (TNONE == cmd) {
             err_exit("unkown fusion command '%s'\n\navailable commands are:\n"
-                     "  combsum, combmnz, rbc, rrf",
+                     AVAILCMDS
                 argv[optind]);
         }
 
@@ -146,7 +152,7 @@ parse_opt(int argc, char **argv)
         strcpy(opt_str, "d:r:p:");
     } else if (TRRF == cmd) {
         strcpy(opt_str, "d:r:k:");
-    } else if (TCOMBSUM == cmd) {
+    } else {
         strcpy(opt_str, "d:r:");
     }
 
@@ -198,6 +204,7 @@ usage(void)
                     "  -r runid     set run identifier\n"
                     "  -v           display version and exit\n"
                     "\nfusion commands:\n"
+                    "  borda        Borda count\n"
                     "  combsum      CombSUM\n"
                     "  combmnz      CombMNZ\n"
                     "  rbc          Rank-biased centroids\n"

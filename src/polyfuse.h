@@ -38,7 +38,7 @@ void
 pf_set_rrf_k(const long k);
 
 double
-pf_score(size_t rank, struct trec_entry *tentry);
+pf_score(size_t rank, size_t n, struct trec_entry *tentry);
 
 void
 pf_present(FILE *stream, const char *id, size_t depth);

@@ -16,6 +16,7 @@ enum fusetype {
     TRBC,
     TRRF,
     TCOMBMNZ,
+    TBORDA,
 };
 
 #endif /* FUSETYPE_H */

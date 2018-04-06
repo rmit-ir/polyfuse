@@ -82,7 +82,7 @@ pf_accumulate(struct trec_run *r)
     for (size_t i = 0; i < r->len; i++) {
         size_t rank = r->ary[i].rank - 1;
         if (rank < weight_sz) {
-            double score = pf_score(rank + 1, &r->ary[i]);
+            double score = pf_score(rank + 1, r->len, &r->ary[i]);
             struct pf_accum **curr;
             curr = pf_topic_lookup(topic_tab, r->ary[i].qid);
             if (*curr) {
@@ -105,11 +105,14 @@ pf_set_rrf_k(const long k)
 }
 
 double
-pf_score(size_t rank, struct trec_entry *tentry)
+pf_score(size_t rank, size_t n, struct trec_entry *tentry)
 {
     double s = 0.0;
 
     switch (fusion) {
+    case TBORDA:
+        s = ((double)n - rank + 1) / n;
+        break;
     case TCOMBSUM:
     case TCOMBMNZ:
         /*
