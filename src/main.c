@@ -206,7 +206,7 @@ usage(void)
     fprintf(stderr, "usage: polyfuse [-v] [-h] "
                     "<fusion> [options] run1 run2 [run3 ...]\n"
                     "\noptions:\n"
-                    "  -d depth     rank depth to calculate\n"
+                    "  -d depth     rank depth of output\n"
                     "  -h           display this message\n"
                     "  -r runid     set run identifier\n"
                     "  -v           display version and exit\n"
