@@ -178,9 +178,12 @@ pf_present(FILE *stream, const char *id, size_t depth)
             }
             score = curr->data[j].val;
             /*
-             * Apply CombMNZ, ISR or logISR multiplication
+             * Apply CombSUM normalization, or multiplication for CombMNZ, ISR
+             * and logISR.
              */
-            if (TCOMBMNZ == fusion || TISR == fusion) {
+            if (TCOMBSUM == fusion) {
+                score /= curr->data[j].count;
+            } else if (TCOMBMNZ == fusion || TISR == fusion) {
                 score *= curr->data[j].count;
             } else if (TLOGISR == fusion) {
                 /* +1 to `log` to avoid log(1) = 0 */
