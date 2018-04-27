@@ -31,7 +31,7 @@
 
 static enum fusetype cmd = TNONE;
 static char cmd_str[CMDSTR_LEN] = {0};
-static double phi = 0.8;
+static long double phi = 0.8;
 static long rrf_k = 60;
 static size_t depth = DEFAULT_DEPTH;
 char *runid = NULL;
@@ -231,7 +231,7 @@ present_args()
     fprintf(stderr, "# depth: %ld\n", depth);
     fprintf(stderr, "# fusion: %s\n", cmd_str);
     if (TRBC == cmd) {
-        fprintf(stderr, "# phi: %f\n", phi);
+        fprintf(stderr, "# phi: %Lf\n", phi);
     } else if (TRRF == cmd) {
         fprintf(stderr, "# k: %ld\n", rrf_k);
     }

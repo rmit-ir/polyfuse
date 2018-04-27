@@ -122,7 +122,7 @@ pq_sift_down(struct pq *pq, size_t n)
  */
 int
 pq_insert(
-    struct pq *pq, char *const val, const double prio, const size_t count)
+    struct pq *pq, char *const val, const long double prio, const size_t count)
 {
     struct accum_node new, top;
     int ret = 0;

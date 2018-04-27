@@ -21,7 +21,7 @@
 #include "trec.h"
 
 void
-pf_weight_alloc(const double phi, const size_t len);
+pf_weight_alloc(const long double phi, const size_t len);
 
 void
 pf_init(const struct trec_topic *topics);
@@ -38,7 +38,7 @@ pf_set_fusion(const enum fusetype type);
 void
 pf_set_rrf_k(const long k);
 
-double
+long double
 pf_score(size_t rank, size_t n, struct trec_entry *tentry);
 
 void

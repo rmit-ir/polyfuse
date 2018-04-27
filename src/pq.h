@@ -30,8 +30,8 @@ void
 pq_destroy(struct pq *pq);
 
 int
-pq_insert(
-    struct pq *pq, char *const val, const double prio, const size_t count);
+pq_insert(struct pq *pq, char *const val, const long double prio,
+    const size_t count);
 
 int
 pq_remove(struct pq *pq, struct accum_node *res);

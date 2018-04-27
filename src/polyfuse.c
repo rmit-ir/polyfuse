@@ -19,18 +19,18 @@ static struct pf_topic *topic_tab = NULL;
 static struct topic_list qids = {NULL, 0};
 
 long rrf_k = 0;
-double *weights = NULL;
+long double *weights = NULL;
 size_t weight_sz = 0;
 
 /*
  * Allocate RBC weight to the longest seen run file.
  */
 void
-pf_weight_alloc(const double phi, const size_t len)
+pf_weight_alloc(const long double phi, const size_t len)
 {
     static bool first = true;
-    static double w;
-    static double _phi;
+    static long double w;
+    static long double _phi;
     size_t prev = weight_sz;
 
     // alocate weights for the longest run file
@@ -40,12 +40,13 @@ pf_weight_alloc(const double phi, const size_t len)
 
     weight_sz = len;
     if (first) {
-        weights = (double *)bmalloc(sizeof(double) * weight_sz);
+        weights = (long double *)bmalloc(sizeof(long double) * weight_sz);
         w = 1.0 - phi;
         _phi = phi;
         first = false;
     } else {
-        weights = (double *)brealloc(weights, sizeof(double) * weight_sz);
+        weights =
+            (long double *)brealloc(weights, sizeof(long double) * weight_sz);
     }
 
     for (size_t i = prev; i < weight_sz; i++) {
@@ -82,7 +83,7 @@ pf_accumulate(struct trec_run *r)
     for (size_t i = 0; i < r->len; i++) {
         size_t rank = r->ary[i].rank - 1;
         if (rank < weight_sz) {
-            double score = pf_score(rank + 1, r->len, &r->ary[i]);
+            long double score = pf_score(rank + 1, r->len, &r->ary[i]);
             struct pf_accum **curr;
             curr = pf_topic_lookup(topic_tab, r->ary[i].qid);
             if (*curr) {
@@ -104,14 +105,14 @@ pf_set_rrf_k(const long k)
     rrf_k = k;
 }
 
-double
+long double
 pf_score(size_t rank, size_t n, struct trec_entry *tentry)
 {
-    double s = 0.0;
+    long double s = 0.0;
 
     switch (fusion) {
     case TBORDA:
-        s = ((double)n - rank + 1) / n;
+        s = ((long double)n - rank + 1) / n;
         break;
     case TCOMBSUM:
     case TCOMBMNZ:
@@ -133,13 +134,13 @@ pf_score(size_t rank, size_t n, struct trec_entry *tentry)
          * multiplication for ISR, logISR is applied when the entry is added to
          * the priority queue in `pf_present`.
          */
-        s = (double)1 / pow(rank, 2);
+        s = (long double)1 / pow(rank, 2);
         break;
     case TRBC:
         s = weights[rank - 1];
         break;
     case TRRF:
-        s = 1 / ((double)rrf_k + rank);
+        s = 1 / ((long double)rrf_k + rank);
         break;
     default:
         break;
@@ -172,7 +173,7 @@ pf_present(FILE *stream, const char *id, size_t depth)
         struct pq *pq = pq_create(weight_sz);
         // this is why we use linear probing
         for (size_t j = 0; j < curr->capacity; j++) {
-            double score = 0.0;
+            long double score = 0.0;
             if (!curr->data[j].is_set) {
                 continue;
             }
@@ -200,8 +201,8 @@ pf_present(FILE *stream, const char *id, size_t depth)
         for (size_t j = depth, k = 1; j > 0; j--) {
             size_t idx = j - 1;
             if (res[idx].is_set) {
-                fprintf(stream, "%d Q0 %s %lu %.8f %s\n", qids.ary[i],
-                    res[idx].docno, k++, idx + res[idx].val / norm, id);
+                fprintf(stream, "%d Q0 %s %lu %.9Lf %s\n", qids.ary[i],
+                    res[idx].docno, k++, idx + res[idx].val, id);
             }
         }
         free(res);

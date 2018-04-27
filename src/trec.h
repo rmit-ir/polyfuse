@@ -23,7 +23,7 @@ struct trec_entry {
     int qid;
     char *docno;
     int rank;
-    double score;
+    long double score;
     char *name;
 };
 

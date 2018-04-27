@@ -92,7 +92,7 @@ pf_accum_free(struct pf_accum *htable)
  * Insert an element into the hash table.
  */
 unsigned long
-pf_accum_update(struct pf_accum **htable, const char *val, double score)
+pf_accum_update(struct pf_accum **htable, const char *val, long double score)
 {
     unsigned long key;
     unsigned long start_pos;
