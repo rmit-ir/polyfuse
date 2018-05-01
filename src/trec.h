@@ -12,12 +12,16 @@
 
 #include <ctype.h>
 #include <limits.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "util.h"
+
+enum trec_norm { TNORM_NONE, TNORM_MINMAX, TNORM_SUM, TNORM_ZMUV };
+extern const char *trec_norm_str[];
 
 struct trec_entry {
     int qid;
@@ -48,5 +52,8 @@ trec_destroy(struct trec_run *run);
 
 void
 trec_read(struct trec_run *r, FILE *fp);
+
+void
+trec_normalize(struct trec_run *r, enum trec_norm norm);
 
 #endif /* TREC_H */

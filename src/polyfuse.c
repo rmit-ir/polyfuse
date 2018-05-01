@@ -152,19 +152,12 @@ pf_score(size_t rank, size_t n, struct trec_entry *tentry)
 void
 pf_present(FILE *stream, const char *id, size_t depth)
 {
-    double norm = 1.0;
-
     if (depth < 1) {
         err_exit("`depth` is 0");
     }
 
     if (depth > weight_sz) {
         depth = weight_sz;
-    }
-
-    /* combsum, combmnz normalization */
-    if (TCOMBSUM == fusion || TCOMBMNZ == fusion) {
-        norm = depth;
     }
 
     for (size_t i = 0; i < qids.size; i++) {
@@ -179,12 +172,9 @@ pf_present(FILE *stream, const char *id, size_t depth)
             }
             score = curr->data[j].val;
             /*
-             * Apply CombSUM normalization, or multiplication for CombMNZ, ISR
-             * and logISR.
+             * Apply multiplication for CombMNZ, ISR and logISR.
              */
-            if (TCOMBSUM == fusion) {
-                score /= curr->data[j].count;
-            } else if (TCOMBMNZ == fusion || TISR == fusion) {
+            if (TCOMBMNZ == fusion || TISR == fusion) {
                 score *= curr->data[j].count;
             } else if (TLOGISR == fusion) {
                 /* +1 to `log` to avoid log(1) = 0 */

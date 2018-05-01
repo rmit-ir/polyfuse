@@ -11,6 +11,14 @@
 
 #define INIT_SZ 16
 
+const char *
+trec_norm_str[] = {
+  "none",
+  "min-max",
+  "sum",
+  "standard (zmuv)"
+};
+
 static int prev_top = 0;
 
 /*
@@ -140,5 +148,96 @@ trec_read(struct trec_run *r, FILE *fp)
         if (curr_topic > 0) {
             r->topics.ary[r->topics.len++] = curr_topic;
         }
+    }
+}
+
+static void
+minmax_normalizer(struct trec_run *r)
+{
+    long double min = 0.0, max = 0.0;
+    bool first = true;
+
+    for (size_t i = 0; i < r->len; i++) {
+        if (first) {
+            min = max = r->ary[i].score;
+            first = false;
+        }
+
+        if (r->ary[i].score < min) {
+            min = r->ary[i].score;
+        }
+        if (r->ary[i].score > max) {
+            max = r->ary[i].score;
+        }
+    }
+
+    if ((max - min) == 0) {
+        DLOG("min - max is zero.");
+        return;
+    }
+
+    for (size_t i = 0; i < r->len; i++) {
+        r->ary[i].score = (r->ary[i].score - min) / (max - min);
+    }
+}
+
+static void
+sum_normalizer(struct trec_run *r)
+{
+    long double total = 0.0;
+
+    for (size_t i = 0; i < r->len; i++) {
+        r->ary[i].score = fabsl(r->ary[i].score);
+        total += r->ary[i].score;
+    }
+
+    for (size_t i = 0; i < r->len; i++) {
+        r->ary[i].score /= total;
+    }
+}
+
+static void
+zmuv_normalizer(struct trec_run *r)
+{
+    long double mean = 0.0, var = 0.0, std = 0.0;
+
+    for (size_t i = 0; i < r->len; i++) {
+        mean += r->ary[i].score;
+    }
+    mean /= r->len;
+
+    for (size_t i = 0; i < r->len; i++) {
+        long double x = r->ary[i].score - mean;
+        var += x * x;
+    }
+    var /= r->len;
+    std = sqrtl(var);
+
+    if (std == 0) {
+        DLOG("std is zero.");
+        return;
+    }
+
+    for (size_t i = 0; i < r->len; i++) {
+        r->ary[i].score = (r->ary[i].score - mean) / std;
+    }
+}
+
+void
+trec_normalize(struct trec_run *r, enum trec_norm norm)
+{
+    switch (norm) {
+    case TNORM_MINMAX:
+        minmax_normalizer(r);
+        break;
+    case TNORM_SUM:
+        sum_normalizer(r);
+        break;
+    case TNORM_ZMUV:
+        zmuv_normalizer(r);
+        break;
+    case TNORM_NONE:
+    default:
+        break;
     }
 }

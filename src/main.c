@@ -33,6 +33,7 @@ static enum fusetype cmd = TNONE;
 static char cmd_str[CMDSTR_LEN] = {0};
 static long double phi = 0.8;
 static long rrf_k = 60;
+static enum trec_norm fnorm = TNORM_NONE;
 static size_t depth = DEFAULT_DEPTH;
 char *runid = NULL;
 const char *default_runid[] = {
@@ -49,6 +50,9 @@ usage(void);
 
 static void
 present_args();
+
+static enum trec_norm
+strtonorm(const char *s);
 
 static FILE *
 next_file(int argc, char **argv)
@@ -79,6 +83,12 @@ main(int argc, char **argv)
     for (size_t i = left; (fp = next_file(i, argv)) != NULL; i--) {
         struct trec_run *r = trec_create();
         trec_read(r, fp);
+        if (cmd == TCOMBSUM || cmd == TCOMBMNZ) {
+            /*
+             * Normalize score based fusion measures.
+             */
+            trec_normalize(r, fnorm);
+        }
         if (first) {
             /*
              * All run files are assumed to have the same topics and are taken
@@ -159,6 +169,8 @@ parse_opt(int argc, char **argv)
         strcpy(opt_str, "d:r:p:");
     } else if (TRRF == cmd) {
         strcpy(opt_str, "d:r:k:");
+    } else if (TCOMBSUM == cmd || TCOMBMNZ == cmd) {
+        strcpy(opt_str, "d:r:n:");
     } else {
         strcpy(opt_str, "d:r:");
     }
@@ -173,6 +185,13 @@ parse_opt(int argc, char **argv)
             break;
         case 'k':
             rrf_k = strtol(optarg, NULL, 10);
+            break;
+        case 'n':
+            fnorm = strtonorm(optarg);
+            if (TNORM_NONE == fnorm) {
+                err_exit("unkown normalization '%s'\n\nvalid normalizations "
+                        "are:\n minmax, sum, std", optarg);
+            }
             break;
         case 'p':
             phi = strtod(optarg, NULL);
@@ -218,6 +237,14 @@ usage(void)
                     "  logisr       Logarithmic inverse square rank\n"
                     "  rbc          Rank-biased centroids\n"
                     "  rrf          Recipocal rank fusion\n"
+                    "\nnormalization options (combsum, combmnz):\n"
+                    "  minmax       min-max scaler\n"
+                    "  std          zero mean and unit variance\n"
+                    "  sum          sum normalization\n"
+                    "\ncombsum options:\n"
+                    "  -n norm      perform score normalization before fusion\n"
+                    "\ncombmnz options:\n"
+                    "  -n norm      perform score normalization before fusion\n"
                     "\nrbc options:\n"
                     "  -p num       user persistence in the range [0.0,1.0]\n"
                     "\nrrf options:\n"
@@ -234,5 +261,28 @@ present_args()
         fprintf(stderr, "# phi: %Lf\n", phi);
     } else if (TRRF == cmd) {
         fprintf(stderr, "# k: %ld\n", rrf_k);
+    } else if (TCOMBSUM == cmd || TCOMBMNZ == cmd) {
+        fprintf(stderr, "# normalization: %s\n", trec_norm_str[fnorm]);
     }
+}
+
+static enum trec_norm
+strtonorm(const char *s)
+{
+    const char *opts[] = {
+        "minmax",
+        "sum",
+        "std"
+    };
+    enum trec_norm norm = TNORM_NONE;
+
+    if (strncmp(opts[0], s, strlen(opts[0])) == 0) {
+        norm = TNORM_MINMAX;
+    } else if (strncmp(opts[1], s, strlen(opts[1])) == 0) {
+        norm = TNORM_SUM;
+    } else if (strncmp(opts[2], s, strlen(opts[2])) == 0) {
+        norm = TNORM_ZMUV;
+    }
+
+    return norm;
 }
