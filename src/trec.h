@@ -42,6 +42,7 @@ struct trec_run {
     size_t len;
     size_t alloc;
     struct trec_topic topics;
+    size_t max_rank;
 };
 
 struct trec_run *

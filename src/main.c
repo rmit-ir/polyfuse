@@ -100,7 +100,7 @@ main(int argc, char **argv)
             first = false;
         }
 
-        pf_weight_alloc(phi, r->len);
+        pf_weight_alloc(phi, r->max_rank);
         pf_accumulate(r);
         trec_destroy(r);
         fclose(fp);
