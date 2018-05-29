@@ -81,17 +81,17 @@ void
 pf_accumulate(struct trec_run *r)
 {
     for (size_t i = 0; i < r->len; i++) {
-        //size_t rank = r->ary[i].rank - 1;
-        size_t rank = r->ary[i].rank;
-        //if (rank < weight_sz) {
-            //long double score = pf_score(rank + 1, r->len, &r->ary[i]);
-            long double score = pf_score(rank, r->len, &r->ary[i]);
+        size_t rank = r->ary[i].rank - 1;
+        //size_t rank = r->ary[i].rank;
+        if (rank < weight_sz) {
+            long double score = pf_score(rank + 1, r->len, &r->ary[i]);
+            //long double score = pf_score(rank, r->len, &r->ary[i]);
             struct pf_accum **curr;
             curr = pf_topic_lookup(topic_tab, r->ary[i].qid);
             if (*curr) {
                 pf_accum_update(curr, r->ary[i].docno, score);
             }
-        //}
+        }
     }
 }
 
@@ -196,9 +196,13 @@ pf_present(FILE *stream, const char *id, size_t depth)
             if (res[idx].is_set) {
                 // XXX fprintf(stream, "%d Q0 %s %lu %.9Lf %s\n", qids.ary[i],
                 // XXX    res[idx].docno, k++, idx + res[idx].val, id);
+                long double score = res[idx].val;
+                if (TRBC == fusion) {
+                    score += idx;
+                }
                
                 fprintf(stream, "%d Q0 %s %lu %.9Lf %s\n", qids.ary[i],
-                    res[idx].docno, k++, res[idx].val, id);
+                    res[idx].docno, k++, score, id);
  
             }
         }

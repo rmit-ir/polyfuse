@@ -4,8 +4,8 @@
 # Export POLYPARAM variable with the polyfuse parameters you would like.
 
 #POLYPARAM="rrf -k 60 -d 1000"
-#POLYPARAM="combsum -n minmax -d 1000"
-POLYPARAM="rbc -p 0.995"
+POLYPARAM="combsum -n minmax -d 1000"
+#POLYPARAM="rbc -p 0.995"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
