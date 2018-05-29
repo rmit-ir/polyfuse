@@ -12,3 +12,5 @@ UQV trec run files take the form:
 ```
 
 Invoke by using `./uqvpolyfuse.sh uqvrun1 uqvrun2 ...`
+
+The fused run will be named `out.txt` in this folder.
