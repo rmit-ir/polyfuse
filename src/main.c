@@ -190,7 +190,8 @@ parse_opt(int argc, char **argv)
             fnorm = strtonorm(optarg);
             if (TNORM_NONE == fnorm) {
                 err_exit("unknown normalization '%s'\n\nvalid normalizations "
-                        "are:\n minmax, sum, std", optarg);
+                         "are:\n minmax, sum, std",
+                    optarg);
             }
             break;
         case 'p':
@@ -222,33 +223,34 @@ parse_opt(int argc, char **argv)
 static void
 usage(void)
 {
-    fprintf(stderr, "usage: polyfuse [-v] [-h] "
-                    "<fusion> [options] run1 run2 [run3 ...]\n"
-                    "\noptions:\n"
-                    "  -d depth     rank depth of output\n"
-                    "  -h           display this message\n"
-                    "  -r runid     set run identifier\n"
-                    "  -v           display version and exit\n"
-                    "\nfusion commands:\n"
-                    "  borda        Borda count\n"
-                    "  combsum      CombSUM\n"
-                    "  combmnz      CombMNZ\n"
-                    "  isr          Inverse square rank\n"
-                    "  logisr       Logarithmic inverse square rank\n"
-                    "  rbc          Rank-biased centroids\n"
-                    "  rrf          Recipocal rank fusion\n"
-                    "\nnormalization options (combsum, combmnz):\n"
-                    "  minmax       min-max scaler\n"
-                    "  std          zero mean and unit variance\n"
-                    "  sum          sum normalization\n"
-                    "\ncombsum options:\n"
-                    "  -n norm      perform score normalization before fusion\n"
-                    "\ncombmnz options:\n"
-                    "  -n norm      perform score normalization before fusion\n"
-                    "\nrbc options:\n"
-                    "  -p num       user persistence in the range [0.0,1.0]\n"
-                    "\nrrf options:\n"
-                    "  -k num       constant to control outlier rankings\n\n");
+    fprintf(stderr,
+        "usage: polyfuse [-v] [-h] "
+        "<fusion> [options] run1 run2 [run3 ...]\n"
+        "\noptions:\n"
+        "  -d depth     rank depth of output\n"
+        "  -h           display this message\n"
+        "  -r runid     set run identifier\n"
+        "  -v           display version and exit\n"
+        "\nfusion commands:\n"
+        "  borda        Borda count\n"
+        "  combsum      CombSUM\n"
+        "  combmnz      CombMNZ\n"
+        "  isr          Inverse square rank\n"
+        "  logisr       Logarithmic inverse square rank\n"
+        "  rbc          Rank-biased centroids\n"
+        "  rrf          Recipocal rank fusion\n"
+        "\nnormalization options (combsum, combmnz):\n"
+        "  minmax       min-max scaler\n"
+        "  std          zero mean and unit variance\n"
+        "  sum          sum normalization\n"
+        "\ncombsum options:\n"
+        "  -n norm      perform score normalization before fusion\n"
+        "\ncombmnz options:\n"
+        "  -n norm      perform score normalization before fusion\n"
+        "\nrbc options:\n"
+        "  -p num       user persistence in the range [0.0,1.0]\n"
+        "\nrrf options:\n"
+        "  -k num       constant to control outlier rankings\n\n");
 }
 
 static void
@@ -269,11 +271,7 @@ present_args()
 static enum trec_norm
 strtonorm(const char *s)
 {
-    const char *opts[] = {
-        "minmax",
-        "sum",
-        "std"
-    };
+    const char *opts[] = {"minmax", "sum", "std"};
     enum trec_norm norm = TNORM_NONE;
 
     if (strncmp(opts[0], s, strlen(opts[0])) == 0) {

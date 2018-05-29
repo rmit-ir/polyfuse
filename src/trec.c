@@ -11,13 +11,7 @@
 
 #define INIT_SZ 16
 
-const char *
-trec_norm_str[] = {
-  "none",
-  "min-max",
-  "sum",
-  "standard (zmuv)"
-};
+const char *trec_norm_str[] = {"none", "min-max", "sum", "standard (zmuv)"};
 
 static int prev_top = 0;
 static int max_rank = 1;

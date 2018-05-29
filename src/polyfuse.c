@@ -195,10 +195,9 @@ pf_present(FILE *stream, const char *id, size_t depth)
                 if (TRBC == fusion) {
                     score += idx;
                 }
-               
+
                 fprintf(stream, "%d Q0 %s %lu %.9Lf %s\n", qids.ary[i],
                     res[idx].docno, k++, score, id);
- 
             }
         }
         free(res);
