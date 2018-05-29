@@ -1,3 +1,6 @@
 *.o
 *.d
 polyfuse
+uqvconvert/tmp
+uqvconvert/out.txt
+uqvconvert/nums

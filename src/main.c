@@ -157,7 +157,7 @@ parse_opt(int argc, char **argv)
         }
 
         if (TNONE == cmd) {
-            err_exit("unkown fusion command '%s'\n\navailable commands "
+            err_exit("unknown fusion command '%s'\n\navailable commands "
                      "are:\n" AVAILCMDS argv[optind]);
         }
 
