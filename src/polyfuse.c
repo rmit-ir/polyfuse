@@ -82,10 +82,8 @@ pf_accumulate(struct trec_run *r)
 {
     for (size_t i = 0; i < r->len; i++) {
         size_t rank = r->ary[i].rank - 1;
-        //size_t rank = r->ary[i].rank;
         if (rank < weight_sz) {
             long double score = pf_score(rank + 1, r->len, &r->ary[i]);
-            //long double score = pf_score(rank, r->len, &r->ary[i]);
             struct pf_accum **curr;
             curr = pf_topic_lookup(topic_tab, r->ary[i].qid);
             if (*curr) {
@@ -191,11 +189,8 @@ pf_present(FILE *stream, const char *id, size_t depth)
             pq_remove(pq, res + sz++);
         }
         for (size_t j = depth, k = 1; j > 0; j--) {
-            //size_t idx = j - 1;
             size_t idx = j;
             if (res[idx].is_set) {
-                // XXX fprintf(stream, "%d Q0 %s %lu %.9Lf %s\n", qids.ary[i],
-                // XXX    res[idx].docno, k++, idx + res[idx].val, id);
                 long double score = res[idx].val;
                 if (TRBC == fusion) {
                     score += idx;
