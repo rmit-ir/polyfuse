@@ -189,7 +189,7 @@ parse_opt(int argc, char **argv)
         case 'n':
             fnorm = strtonorm(optarg);
             if (TNORM_NONE == fnorm) {
-                err_exit("unkown normalization '%s'\n\nvalid normalizations "
+                err_exit("unknown normalization '%s'\n\nvalid normalizations "
                         "are:\n minmax, sum, std", optarg);
             }
             break;
