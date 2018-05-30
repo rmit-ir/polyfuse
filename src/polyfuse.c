@@ -23,22 +23,21 @@ long double *weights = NULL;
 size_t weight_sz = 0;
 
 /*
- * Allocate RBC weight to the longest seen run file.
+ * Allocate RBC weight to the deepest topic seen in all run files.
  */
 void
-pf_weight_alloc(const long double phi, const size_t len)
+pf_weight_alloc(const long double phi, const size_t depth)
 {
     static bool first = true;
     static long double w;
     static long double _phi;
     size_t prev = weight_sz;
 
-    // allocate weights for the longest run file
-    if (len <= weight_sz) {
+    if (depth <= weight_sz) {
         return;
     }
 
-    weight_sz = len;
+    weight_sz = depth;
     if (first) {
         weights = (long double *)bmalloc(sizeof(long double) * weight_sz);
         w = 1.0 - phi;
