@@ -12,7 +12,7 @@
 extern "C" {
 #include "polyfuse.h"
 
-extern double *weights;
+extern long double *weights;
 extern size_t weight_sz;
 }
 
@@ -29,7 +29,7 @@ TEST_GROUP(pf)
 
 TEST(pf, pf_weight_zero)
 {
-  const double result[] = {
+  const long double result[] = {
     0.2, 0.16, 0.128, 0.1024, 0.08192,
     0.065536, 0.0524288, 0.04194304, 0.03355443, 0.02684355,
   };
