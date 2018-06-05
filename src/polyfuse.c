@@ -187,16 +187,13 @@ pf_present(FILE *stream, const char *id, size_t depth)
         while (sz < weight_sz && pq->size > 0) {
             pq_remove(pq, res + sz++);
         }
-        for (size_t j = depth, k = 1; j > 0; j--) {
-            size_t idx = j;
-            if (res[idx].is_set) {
-                long double score = res[idx].val;
-                if (TRBC == fusion) {
-                    score += idx;
-                }
-
+        for (size_t j = sz, k = 1; (int)depth >= 0; j--, depth--) {
+            if (res[j].is_set) {
                 fprintf(stream, "%d Q0 %s %lu %.9Lf %s\n", qids.ary[i],
-                    res[idx].docno, k++, score, id);
+                    res[j].docno, k++, j + res[j].val, id);
+            }
+            if (0 == j) {
+                break;
             }
         }
         free(res);
