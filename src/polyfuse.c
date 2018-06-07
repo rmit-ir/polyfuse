@@ -187,7 +187,8 @@ pf_present(FILE *stream, const char *id, size_t depth)
         while (sz < weight_sz && pq->size > 0) {
             pq_remove(pq, res + sz++);
         }
-        for (size_t j = sz, k = 1; (int)depth >= 0; j--, depth--) {
+        long long c = depth;
+        for (size_t j = sz, k = 1; c >= 0; j--, c--) {
             if (res[j].is_set) {
                 fprintf(stream, "%d Q0 %s %lu %.9Lf %s\n", qids.ary[i],
                     res[j].docno, k++, j + res[j].val, id);
