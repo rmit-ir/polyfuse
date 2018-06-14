@@ -5,8 +5,9 @@ A tool for performing popular fusion techniques on TREC run files.
 The following fusion methods are supported:
 
 * Borda count
-* CombSUM
+* CombANZ
 * CombMNZ
+* CombSUM
 * Inverse square rank
 * Logarithmic inverse square rank
 * Rank-biased centroids
