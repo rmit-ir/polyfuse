@@ -113,8 +113,9 @@ pf_score(size_t rank, size_t n, struct trec_entry *tentry)
     case TBORDA:
         s = ((long double)n - rank + 1) / n;
         break;
-    case TCOMBSUM:
+    case TCOMBANZ:
     case TCOMBMNZ:
+    case TCOMBSUM:
         /*
          * CombMNZ:
          *
@@ -170,10 +171,9 @@ pf_present(FILE *stream, const char *id, size_t depth)
                 continue;
             }
             score = curr->data[j].val;
-            /*
-             * Apply multiplication for CombMNZ, ISR and logISR.
-             */
-            if (TCOMBMNZ == fusion || TISR == fusion) {
+            if (TCOMBANZ == fusion) {
+                score /= curr->data[j].count;
+            } else if (TCOMBMNZ == fusion || TISR == fusion) {
                 score *= curr->data[j].count;
             } else if (TLOGISR == fusion) {
                 /* +1 to `log` to avoid log(1) = 0 */

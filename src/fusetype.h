@@ -12,10 +12,11 @@
 
 enum fusetype {
     TNONE = 0,
+    TCOMBANZ,
+    TCOMBMNZ,
     TCOMBSUM,
     TRBC,
     TRRF,
-    TCOMBMNZ,
     TBORDA,
     TISR,
     TLOGISR,

@@ -22,12 +22,13 @@
 #define FBORDA "borda"
 #define FCOMBSUM "combsum"
 #define FCOMBMNZ "combmnz"
+#define FCOMBANZ "combanz"
 #define FISR "isr"
 #define FLOGISR "logisr"
 #define FRBC "rbc"
 #define FRRF "rrf"
 #define CMDSTR_LEN 8
-#define AVAILCMDS "  borda, combsum, combmnz, isr, logisr, rbc, rrf",
+#define AVAILCMDS "  borda, combanz, combmnz, combsum, isr, logisr, rbc, rrf",
 
 static enum fusetype cmd = TNONE;
 static char cmd_str[CMDSTR_LEN] = {0};
@@ -38,8 +39,8 @@ static size_t depth = DEFAULT_DEPTH;
 char *runid = NULL;
 const char *default_runid[] = {
     "", /* TNONE */
-    "polyfuse-combsum", "polyfuse-rbc", "polyfuse-rrf", "polyfuse-combmnz",
-    "polyfuse-borda", "polyfuse-isr", "polyfuse-logisr",
+    "polyfuse-combanz", "polyfuse-combmnz", "polyfuse-combsum", "polyfuse-rbc",
+    "polyfuse-rrf", "polyfuse-borda", "polyfuse-isr", "polyfuse-logisr",
 };
 
 static int
@@ -70,6 +71,19 @@ next_file(int argc, char **argv)
     return fp;
 }
 
+static bool
+is_score_based(enum fusetype type)
+{
+    switch (type) {
+    case TCOMBANZ:
+    case TCOMBMNZ:
+    case TCOMBSUM:
+        return true;
+    default:
+        return false;
+    }
+}
+
 int
 main(int argc, char **argv)
 {
@@ -83,7 +97,7 @@ main(int argc, char **argv)
     for (size_t i = left; (fp = next_file(i, argv)) != NULL; i--) {
         struct trec_run *r = trec_create();
         trec_read(r, fp);
-        if (cmd == TCOMBSUM || cmd == TCOMBMNZ) {
+        if (is_score_based(cmd)) {
             /*
              * Normalize score based fusion measures.
              */
@@ -140,6 +154,10 @@ parse_opt(int argc, char **argv)
             cmd = TRRF;
             strncpy(cmd_str, FRRF, CMDSTR_LEN);
         } else if (0 ==
+                   strncmp(argv[optind], FCOMBANZ, strlen(argv[optind]))) {
+            cmd = TCOMBANZ;
+            strncpy(cmd_str, FCOMBANZ, CMDSTR_LEN);
+        } else if (0 ==
                    strncmp(argv[optind], FCOMBMNZ, strlen(argv[optind]))) {
             cmd = TCOMBMNZ;
             strncpy(cmd_str, FCOMBMNZ, CMDSTR_LEN);
@@ -169,7 +187,7 @@ parse_opt(int argc, char **argv)
         strcpy(opt_str, "d:r:p:");
     } else if (TRRF == cmd) {
         strcpy(opt_str, "d:r:k:");
-    } else if (TCOMBSUM == cmd || TCOMBMNZ == cmd) {
+    } else if (is_score_based(cmd)) {
         strcpy(opt_str, "d:r:n:");
     } else {
         strcpy(opt_str, "d:r:");
@@ -233,8 +251,9 @@ usage(void)
         "  -v           display version and exit\n"
         "\nfusion commands:\n"
         "  borda        Borda count\n"
-        "  combsum      CombSUM\n"
+        "  combanz      CombANZ\n"
         "  combmnz      CombMNZ\n"
+        "  combsum      CombSUM\n"
         "  isr          Inverse square rank\n"
         "  logisr       Logarithmic inverse square rank\n"
         "  rbc          Rank-biased centroids\n"
@@ -243,9 +262,11 @@ usage(void)
         "  minmax       min-max scaler\n"
         "  std          zero mean and unit variance\n"
         "  sum          sum normalization\n"
-        "\ncombsum options:\n"
+        "\ncombanz options:\n"
         "  -n norm      perform score normalization before fusion\n"
         "\ncombmnz options:\n"
+        "  -n norm      perform score normalization before fusion\n"
+        "\ncombsum options:\n"
         "  -n norm      perform score normalization before fusion\n"
         "\nrbc options:\n"
         "  -p num       user persistence in the range [0.0,1.0]\n"
@@ -263,7 +284,7 @@ present_args()
         fprintf(stderr, "# phi: %Lf\n", phi);
     } else if (TRRF == cmd) {
         fprintf(stderr, "# k: %ld\n", rrf_k);
-    } else if (TCOMBSUM == cmd || TCOMBMNZ == cmd) {
+    } else if (is_score_based(cmd)) {
         fprintf(stderr, "# normalization: %s\n", trec_norm_str[fnorm]);
     }
 }
