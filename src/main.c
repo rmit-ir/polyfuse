@@ -222,14 +222,14 @@ parse_opt(int argc, char **argv)
         }
     }
 
-    if (!runid) {
-        runid = strdup(default_runid[cmd]);
-    }
-
     argc -= optind;
     if (argc < 2) {
         usage();
         exit(EXIT_FAILURE);
+    }
+
+    if (!runid) {
+        runid = strdup(default_runid[cmd]);
     }
 
     return argc;
