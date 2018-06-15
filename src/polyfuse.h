@@ -10,6 +10,7 @@
 #ifndef PF_H
 #define PF_H
 
+#include <float.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>

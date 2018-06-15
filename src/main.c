@@ -20,15 +20,20 @@
 
 #define DEFAULT_DEPTH 1000
 #define FBORDA "borda"
-#define FCOMBSUM "combsum"
-#define FCOMBMNZ "combmnz"
 #define FCOMBANZ "combanz"
+#define FCOMBMAX "combmax"
+#define FCOMBMED "combmed"
+#define FCOMBMIN "combmin"
+#define FCOMBMNZ "combmnz"
+#define FCOMBSUM "combsum"
 #define FISR "isr"
 #define FLOGISR "logisr"
 #define FRBC "rbc"
 #define FRRF "rrf"
 #define CMDSTR_LEN 8
-#define AVAILCMDS "  borda, combanz, combmnz, combsum, isr, logisr, rbc, rrf",
+#define AVAILCMDS                                                          \
+    "  borda, combanz, combmax, combmed, combmin, combmnz, combsum, isr, " \
+    "logisr, rbc, rrf",
 
 static enum fusetype cmd = TNONE;
 static char cmd_str[CMDSTR_LEN] = {0};
@@ -37,9 +42,11 @@ static long rrf_k = 60;
 static enum trec_norm fnorm = TNORM_NONE;
 static size_t depth = DEFAULT_DEPTH;
 char *runid = NULL;
+// the indices must align with `enum fusetype` entries
 const char *default_runid[] = {
     "", /* TNONE */
-    "polyfuse-combanz", "polyfuse-combmnz", "polyfuse-combsum", "polyfuse-rbc",
+    "polyfuse-combanz", "polyfuse-combmax", "polyfuse-combmed",
+    "polyfuse-combmin", "polyfuse-combmnz", "polyfuse-combsum", "polyfuse-rbc",
     "polyfuse-rrf", "polyfuse-borda", "polyfuse-isr", "polyfuse-logisr",
 };
 
@@ -76,6 +83,9 @@ is_score_based(enum fusetype type)
 {
     switch (type) {
     case TCOMBANZ:
+    case TCOMBMAX:
+    case TCOMBMED:
+    case TCOMBMIN:
     case TCOMBMNZ:
     case TCOMBSUM:
         return true;
@@ -144,32 +154,45 @@ parse_opt(int argc, char **argv)
             exit(EXIT_SUCCESS);
         }
 
-        if (0 == strncmp(argv[optind], FCOMBSUM, strlen(argv[optind]))) {
-            cmd = TCOMBSUM;
-            strncpy(cmd_str, FCOMBSUM, CMDSTR_LEN);
-        } else if (0 == strncmp(argv[optind], FRBC, strlen(argv[optind]))) {
-            cmd = TRBC;
-            strncpy(cmd_str, FRBC, CMDSTR_LEN);
-        } else if (0 == strncmp(argv[optind], FRRF, strlen(argv[optind]))) {
-            cmd = TRRF;
-            strncpy(cmd_str, FRRF, CMDSTR_LEN);
+        if (0 == strncmp(argv[optind], FBORDA, strlen(argv[optind]))) {
+            cmd = TBORDA;
+            strncpy(cmd_str, FBORDA, CMDSTR_LEN);
         } else if (0 ==
                    strncmp(argv[optind], FCOMBANZ, strlen(argv[optind]))) {
             cmd = TCOMBANZ;
             strncpy(cmd_str, FCOMBANZ, CMDSTR_LEN);
         } else if (0 ==
+                   strncmp(argv[optind], FCOMBMAX, strlen(argv[optind]))) {
+            cmd = TCOMBMAX;
+            strncpy(cmd_str, FCOMBMAX, CMDSTR_LEN);
+        } else if (0 ==
+                   strncmp(argv[optind], FCOMBMED, strlen(argv[optind]))) {
+            cmd = TCOMBMED;
+            strncpy(cmd_str, FCOMBMED, CMDSTR_LEN);
+        } else if (0 ==
+                   strncmp(argv[optind], FCOMBMIN, strlen(argv[optind]))) {
+            cmd = TCOMBMIN;
+            strncpy(cmd_str, FCOMBMIN, CMDSTR_LEN);
+        } else if (0 ==
                    strncmp(argv[optind], FCOMBMNZ, strlen(argv[optind]))) {
             cmd = TCOMBMNZ;
             strncpy(cmd_str, FCOMBMNZ, CMDSTR_LEN);
-        } else if (0 == strncmp(argv[optind], FBORDA, strlen(argv[optind]))) {
-            cmd = TBORDA;
-            strncpy(cmd_str, FBORDA, CMDSTR_LEN);
+        } else if (0 ==
+                   strncmp(argv[optind], FCOMBSUM, strlen(argv[optind]))) {
+            cmd = TCOMBSUM;
+            strncpy(cmd_str, FCOMBSUM, CMDSTR_LEN);
         } else if (0 == strncmp(argv[optind], FISR, strlen(argv[optind]))) {
             cmd = TISR;
             strncpy(cmd_str, FISR, CMDSTR_LEN);
         } else if (0 == strncmp(argv[optind], FLOGISR, strlen(argv[optind]))) {
             cmd = TLOGISR;
             strncpy(cmd_str, FLOGISR, CMDSTR_LEN);
+        } else if (0 == strncmp(argv[optind], FRBC, strlen(argv[optind]))) {
+            cmd = TRBC;
+            strncpy(cmd_str, FRBC, CMDSTR_LEN);
+        } else if (0 == strncmp(argv[optind], FRRF, strlen(argv[optind]))) {
+            cmd = TRRF;
+            strncpy(cmd_str, FRRF, CMDSTR_LEN);
         } else {
             cmd = TNONE;
         }
@@ -252,24 +275,23 @@ usage(void)
         "\nfusion commands:\n"
         "  borda        Borda count\n"
         "  combanz      CombANZ\n"
+        "  combmax      CombMAX\n"
+        "  combmed      CombMED\n"
+        "  combmin      CombMIN\n"
         "  combmnz      CombMNZ\n"
         "  combsum      CombSUM\n"
         "  isr          Inverse square rank\n"
         "  logisr       Logarithmic inverse square rank\n"
         "  rbc          Rank-biased centroids\n"
         "  rrf          Recipocal rank fusion\n"
-        "\nnormalization options (combsum, combmnz):\n"
+        "\nnormalization options:\n"
         "  minmax       min-max scaler\n"
         "  std          zero mean and unit variance\n"
         "  sum          sum normalization\n"
-        "\ncombanz options:\n"
-        "  -n norm      perform score normalization before fusion\n"
-        "\ncombmnz options:\n"
-        "  -n norm      perform score normalization before fusion\n"
-        "\ncombsum options:\n"
+        "\nscore-based fusion options (combanz, ..., combsum):\n"
         "  -n norm      perform score normalization before fusion\n"
         "\nrbc options:\n"
-        "  -p num       user persistence in the range [0.0,1.0]\n"
+        "  -p num       user persistence in the range (0.0,1.0)\n"
         "\nrrf options:\n"
         "  -k num       constant to control outlier rankings\n\n");
 }

@@ -86,7 +86,17 @@ pf_accumulate(struct trec_run *r)
             struct pf_accum **curr;
             curr = pf_topic_lookup(topic_tab, r->ary[i].qid);
             if (*curr) {
-                pf_accum_update(curr, r->ary[i].docno, score);
+                switch (fusion) {
+                case TCOMBMIN:
+                    pf_accum_less(curr, r->ary[i].docno, score);
+                    break;
+                case TCOMBMAX:
+                    pf_accum_greater(curr, r->ary[i].docno, score);
+                    break;
+                default:
+                    pf_accum_update(curr, r->ary[i].docno, score);
+                    break;
+                }
             }
         }
     }
@@ -114,6 +124,9 @@ pf_score(size_t rank, size_t n, struct trec_entry *tentry)
         s = ((long double)n - rank + 1) / n;
         break;
     case TCOMBANZ:
+    case TCOMBMAX:
+    case TCOMBMED:
+    case TCOMBMIN:
     case TCOMBMNZ:
     case TCOMBSUM:
         /*

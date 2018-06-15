@@ -13,6 +13,9 @@
 enum fusetype {
     TNONE = 0,
     TCOMBANZ,
+    TCOMBMAX,
+    TCOMBMED,
+    TCOMBMIN,
     TCOMBMNZ,
     TCOMBSUM,
     TRBC,

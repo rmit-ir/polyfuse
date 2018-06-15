@@ -6,6 +6,9 @@ The following fusion methods are supported:
 
 * Borda count
 * CombANZ
+* CombMAX
+* CombMED
+* CombMIN
 * CombMNZ
 * CombSUM
 * Inverse square rank
@@ -32,5 +35,3 @@ This will generate the `polyfuse` binary.
 For regular system fusion, here is an example of using CombSUM to depth 100 using minmax scaling:
 
 `./polyfuse combsum -n minmax -d 100 run1 run2`
-
-

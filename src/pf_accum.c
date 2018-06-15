@@ -89,10 +89,16 @@ pf_accum_free(struct pf_accum *htable)
 }
 
 /*
- * Insert an element into the hash table.
+ * Accumulator operations (internal).
  */
-unsigned long
-pf_accum_update(struct pf_accum **htable, const char *val, long double score)
+enum accum_op { OP_NONE, OP_ADD, OP_LESS, OP_GREATER };
+
+/*
+ * Update an element in the hash table.
+ */
+static unsigned long
+accum_modify_(struct pf_accum **htable, const char *docno, long double score,
+    const enum accum_op op)
 {
     unsigned long key;
     unsigned long start_pos;
@@ -105,19 +111,34 @@ pf_accum_update(struct pf_accum **htable, const char *val, long double score)
         *htable = current;
     }
 
-    key = HASH(val, current);
+    key = HASH(docno, current);
     start_pos = key;
     do {
         entry = &current->data[key];
         if (!entry->is_set) {
-            entry->docno = strdup(val);
+            entry->docno = strdup(docno);
             entry->val = score;
             entry->is_set = true;
             entry->count = 1;
             ++current->size;
             break;
-        } else if (0 == strncmp(entry->docno, val, strlen(entry->docno))) {
-            entry->val += score;
+        } else if (0 == strncmp(entry->docno, docno, strlen(entry->docno))) {
+            switch (op) {
+            case OP_LESS:
+                if (score < entry->val) {
+                    entry->val = score;
+                }
+                break;
+            case OP_GREATER:
+                if (score > entry->val) {
+                    entry->val = score;
+                }
+                break;
+            case OP_ADD:
+            default:
+                entry->val += score;
+                break;
+            }
             entry->count++;
             break;
         }
@@ -126,6 +147,34 @@ pf_accum_update(struct pf_accum **htable, const char *val, long double score)
     } while (key != start_pos);
 
     return key;
+}
+
+/*
+ * Set accumulator only if `score` is less than the current value.
+ */
+unsigned long
+pf_accum_less(struct pf_accum **htable, const char *docno, long double score)
+{
+    return accum_modify_(htable, docno, score, OP_LESS);
+}
+
+/*
+ * Set accumulator only if `score` is greater than the current value.
+ */
+unsigned long
+pf_accum_greater(
+    struct pf_accum **htable, const char *docno, long double score)
+{
+    return accum_modify_(htable, docno, score, OP_GREATER);
+}
+
+/*
+ * Accumulate value.
+ */
+unsigned long
+pf_accum_update(struct pf_accum **htable, const char *docno, long double score)
+{
+    return accum_modify_(htable, docno, score, OP_ADD);
 }
 
 /*

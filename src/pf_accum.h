@@ -40,7 +40,15 @@ void
 pf_accum_free(struct pf_accum *htable);
 
 unsigned long
-pf_accum_update(struct pf_accum **htable, const char *val, long double score);
+pf_accum_less(struct pf_accum **htable, const char *docno, long double score);
+
+unsigned long
+pf_accum_greater(
+    struct pf_accum **htable, const char *docno, long double score);
+
+unsigned long
+pf_accum_update(
+    struct pf_accum **htable, const char *docno, long double score);
 
 struct pf_accum *
 pf_accum_rehash(struct pf_accum *htable);
