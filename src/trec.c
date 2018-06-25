@@ -11,7 +11,8 @@
 
 #define INIT_SZ 16
 
-const char *trec_norm_str[] = {"none", "min-max", "sum", "standard (zmuv)"};
+const char *trec_norm_str[] = {
+    "none", "min-max", "sum", "min-sum", "standard (zmuv)"};
 
 static int prev_top = 0;
 static int top_count = 0;
@@ -205,6 +206,34 @@ sum_normalizer(struct trec_run *r)
 }
 
 static void
+minsum_normalizer(struct trec_run *r)
+{
+    long double min = 0.0, total = 0.0;
+    bool first = true;
+
+    for (size_t i = 0; i < r->len; i++) {
+        if (first) {
+            min = r->ary[i].score;
+            first = false;
+        }
+
+        if (r->ary[i].score < min) {
+            min = r->ary[i].score;
+        }
+    }
+
+    for (size_t i = 0; i < r->len; i++) {
+        r->ary[i].score = fabsl(r->ary[i].score);
+        total += r->ary[i].score;
+    }
+
+    for (size_t i = 0; i < r->len; i++) {
+        r->ary[i].score -= min;
+        r->ary[i].score /= total - min;
+    }
+}
+
+static void
 zmuv_normalizer(struct trec_run *r)
 {
     long double mean = 0.0, var = 0.0, std = 0.0;
@@ -240,6 +269,9 @@ trec_normalize(struct trec_run *r, enum trec_norm norm)
         break;
     case TNORM_SUM:
         sum_normalizer(r);
+        break;
+    case TNORM_MINSUM:
+        minsum_normalizer(r);
         break;
     case TNORM_ZMUV:
         zmuv_normalizer(r);

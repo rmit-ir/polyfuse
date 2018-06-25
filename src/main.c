@@ -231,7 +231,7 @@ parse_opt(int argc, char **argv)
             fnorm = strtonorm(optarg);
             if (TNORM_NONE == fnorm) {
                 err_exit("unknown normalization '%s'\n\nvalid normalizations "
-                         "are:\n minmax, sum, std",
+                         "are:\n minmax, sum, minsum, std",
                     optarg);
             }
             break;
@@ -288,6 +288,7 @@ usage(void)
         "  minmax       min-max scaler\n"
         "  std          zero mean and unit variance\n"
         "  sum          sum normalization\n"
+        "  minsum       min-sum scaler\n"
         "\nscore-based fusion options (combanz, ..., combsum):\n"
         "  -n norm      perform score normalization before fusion\n"
         "\nrbc options:\n"
@@ -314,14 +315,16 @@ present_args()
 static enum trec_norm
 strtonorm(const char *s)
 {
-    const char *opts[] = {"minmax", "sum", "std"};
+    const char *opts[] = {"minmax", "minsum", "sum", "std"};
     enum trec_norm norm = TNORM_NONE;
 
     if (strncmp(opts[0], s, strlen(opts[0])) == 0) {
         norm = TNORM_MINMAX;
     } else if (strncmp(opts[1], s, strlen(opts[1])) == 0) {
-        norm = TNORM_SUM;
+        norm = TNORM_MINSUM;
     } else if (strncmp(opts[2], s, strlen(opts[2])) == 0) {
+        norm = TNORM_SUM;
+    } else if (strncmp(opts[3], s, strlen(opts[3])) == 0) {
         norm = TNORM_ZMUV;
     }
 

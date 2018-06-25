@@ -20,7 +20,13 @@
 
 #include "util.h"
 
-enum trec_norm { TNORM_NONE, TNORM_MINMAX, TNORM_SUM, TNORM_ZMUV };
+enum trec_norm {
+    TNORM_NONE,
+    TNORM_MINMAX,
+    TNORM_SUM,
+    TNORM_MINSUM,
+    TNORM_ZMUV
+};
 extern const char *trec_norm_str[];
 
 struct trec_entry {
