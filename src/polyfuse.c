@@ -61,6 +61,10 @@ pf_init(const struct trec_topic *topics)
     qids.size = topics->len;
     memcpy(qids.ary, topics->ary, sizeof(int) * topics->len);
 
+    if (fusion == TCOMBMED) {
+        enable_list_accumulator();
+    }
+
     // create an accumulator for each topic
     topic_tab = pf_topic_create(topics->len);
     for (size_t i = 0; i < topics->len; i++) {
@@ -83,18 +87,21 @@ pf_accumulate(struct trec_run *r)
         size_t rank = r->ary[i].rank - 1;
         if (rank < weight_sz) {
             long double score = pf_score(rank + 1, r->len, &r->ary[i]);
-            struct pf_accum **curr;
+            struct accum **curr;
             curr = pf_topic_lookup(topic_tab, r->ary[i].qid);
             if (*curr) {
                 switch (fusion) {
+                case TCOMBMED:
+                    accum_list_append(curr, r->ary[i].docno, score);
+                    break;
                 case TCOMBMIN:
-                    pf_accum_less(curr, r->ary[i].docno, score);
+                    accum_dbl_less(curr, r->ary[i].docno, score);
                     break;
                 case TCOMBMAX:
-                    pf_accum_greater(curr, r->ary[i].docno, score);
+                    accum_dbl_greater(curr, r->ary[i].docno, score);
                     break;
                 default:
-                    pf_accum_update(curr, r->ary[i].docno, score);
+                    accum_dbl_update(curr, r->ary[i].docno, score);
                     break;
                 }
             }
@@ -174,34 +181,53 @@ pf_present(FILE *stream, const char *id, size_t depth)
     }
 
     for (size_t i = 0; i < qids.size; i++) {
-        struct pf_accum *curr;
+        struct accum *curr;
         curr = *pf_topic_lookup(topic_tab, qids.ary[i]);
         struct pq *pq = pq_create(weight_sz);
         // this is why we use linear probing
         for (size_t j = 0; j < curr->capacity; j++) {
             long double score = 0.0;
-            if (!curr->data[j].is_set) {
+            size_t count = 0;
+            char *docno = NULL;
+            size_t entry_sz = 0;
+
+            if (ACCUM_LIST == curr->type) {
+                entry_sz = sizeof(struct list_entry);
+            } else {
+                entry_sz = sizeof(struct dbl_entry);
+            }
+
+            uint8_t *dat = (uint8_t *)curr->data + entry_sz * j;
+            struct default_entry *fentry = (struct default_entry *)dat;
+            if (!fentry->is_set) {
                 continue;
             }
-            score = curr->data[j].val;
+            docno = fentry->docno;
+            if (ACCUM_LIST == curr->type) {
+                struct list_entry *lentry = (struct list_entry *)dat;
+                score = accum_list_median(lentry);
+            } else {
+                struct dbl_entry *dentry = (struct dbl_entry *)dat;
+                score = dentry->val;
+                count = dentry->count;
+            }
             if (TCOMBANZ == fusion) {
-                score /= curr->data[j].count;
+                score /= count;
             } else if (TCOMBMNZ == fusion || TISR == fusion) {
-                score *= curr->data[j].count;
+                score *= count;
             } else if (TLOGISR == fusion) {
                 /* +1 to `log` to avoid log(1) = 0 */
-                score *= log(curr->data[j].count + 1);
+                score *= log(count + 1);
             }
-            pq_insert(pq, curr->data[j].docno, score, curr->data[j].count);
+            pq_insert(pq, docno, score, count);
         }
-        struct accum_node *res =
-            bmalloc(sizeof(struct accum_node) * weight_sz);
+        struct dbl_entry *res = bmalloc(sizeof(struct dbl_entry) * weight_sz);
         size_t sz = 0;
         while (sz < weight_sz && pq->size > 0) {
             pq_remove(pq, res + sz++);
         }
-        long long c = depth;
-        for (size_t j = sz, k = 1; c >= 0; j--, c--) {
+        long long c = depth - 1;
+        for (size_t j = sz - 1, k = 1; c >= 0; j--, c--) {
             if (res[j].is_set) {
                 fprintf(stream, "%d Q0 %s %lu %.9Lf %s\n", qids.ary[i],
                     res[j].docno, k++, j + res[j].val, id);

@@ -20,8 +20,11 @@
 struct pf_topic {
     size_t capacity;
     size_t size;
-    struct pf_accum **data;
+    struct accum **data;
 };
+
+void
+enable_list_accumulator();
 
 struct pf_topic *
 pf_topic_create(size_t capacity);
@@ -32,7 +35,7 @@ pf_topic_free(struct pf_topic *htable);
 unsigned long
 pf_topic_insert(struct pf_topic **htable, const int val);
 
-struct pf_accum **
+struct accum **
 pf_topic_lookup(struct pf_topic *htable, const int val);
 
 struct pf_topic *

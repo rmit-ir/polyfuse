@@ -14,6 +14,7 @@
 const char *trec_norm_str[] = {"none", "min-max", "sum", "standard (zmuv)"};
 
 static int prev_top = 0;
+static int top_count = 0;
 static int max_rank = 1;
 
 /*
@@ -105,6 +106,7 @@ parse_line(char *line, int *topic)
             max_rank = rank;
         }
         rank = 1;
+        top_count++;
         prev_top = tentry.qid;
         *topic = tentry.qid;
     }
@@ -132,6 +134,7 @@ trec_read(struct trec_run *r, FILE *fp)
     int curr_topic;
 
     prev_top = 0;
+    top_count = 0;
 
     while (fgets(buf, BUFSIZ, fp)) {
         if (buf[strlen(buf) - 1] != '\n') {
@@ -147,6 +150,10 @@ trec_read(struct trec_run *r, FILE *fp)
         if (curr_topic > 0) {
             r->topics.ary[r->topics.len++] = curr_topic;
         }
+    }
+
+    if (1 == top_count) {
+        max_rank = r->len;
     }
 
     r->max_rank = max_rank;

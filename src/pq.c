@@ -29,7 +29,7 @@ pq_create(size_t size)
     struct pq *pq;
 
     pq = bmalloc(sizeof(*pq));
-    pq->heap = bmalloc(sizeof(struct accum_node) * (size + HEAP_ROOT));
+    pq->heap = bmalloc(sizeof(struct dbl_entry) * (size + HEAP_ROOT));
     pq->size = 0;
     pq->alloc = size; // ignore the HEAP_ROOT offset
 
@@ -86,7 +86,7 @@ pq_full(const struct pq *pq)
 static void
 pq_sift_up(struct pq *pq, size_t n)
 {
-    struct accum_node *heap = pq->heap;
+    struct dbl_entry *heap = pq->heap;
 
     while (n > 1 && heap[n / 2].val > heap[n].val) {
         pq_swap(pq, n, n / 2);
@@ -100,7 +100,7 @@ pq_sift_up(struct pq *pq, size_t n)
 static void
 pq_sift_down(struct pq *pq, size_t n)
 {
-    struct accum_node *heap = pq->heap;
+    struct dbl_entry *heap = pq->heap;
 
     while (2 * n <= pq_size(pq)) {
         size_t j = 2 * n;
@@ -124,7 +124,7 @@ int
 pq_insert(
     struct pq *pq, char *const val, const long double prio, const size_t count)
 {
-    struct accum_node new, top;
+    struct dbl_entry new, top;
     int ret = 0;
 
     if (!pq || !pq->heap) {
@@ -159,7 +159,7 @@ ret:
  * Peforms a fetch and delete of the top most item.
  */
 int
-pq_remove(struct pq *pq, struct accum_node *res)
+pq_remove(struct pq *pq, struct dbl_entry *res)
 {
     int ret = 0;
 
@@ -182,7 +182,7 @@ pq_remove(struct pq *pq, struct accum_node *res)
  * Fetch the top item from the priority queue. The item is not removed.
  */
 int
-pq_min(const struct pq *pq, struct accum_node *res)
+pq_min(const struct pq *pq, struct dbl_entry *res)
 {
     int ret = 0;
 
@@ -240,7 +240,7 @@ pq_cmp(const struct pq *pq, size_t a, size_t b)
         err_exit("pq_cmp is NULL");
     }
 
-    struct accum_node *heap = pq->heap;
+    struct dbl_entry *heap = pq->heap;
 
     if (heap[a].val == heap[b].val) {
         return 0;
@@ -258,8 +258,8 @@ void
 pq_swap(const struct pq *pq, size_t a, size_t b)
 {
     if (pq) {
-        struct accum_node *heap = pq->heap;
-        struct accum_node tmp;
+        struct dbl_entry *heap = pq->heap;
+        struct dbl_entry tmp;
         if (heap) {
             tmp = heap[a];
             heap[a] = heap[b];

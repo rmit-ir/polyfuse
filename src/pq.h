@@ -18,7 +18,7 @@
 #include "util.h"
 
 struct pq {
-    struct accum_node *heap;
+    struct dbl_entry *heap;
     size_t size;
     size_t alloc;
 };
@@ -34,10 +34,10 @@ pq_insert(struct pq *pq, char *const val, const long double prio,
     const size_t count);
 
 int
-pq_remove(struct pq *pq, struct accum_node *res);
+pq_remove(struct pq *pq, struct dbl_entry *res);
 
 int
-pq_min(const struct pq *pq, struct accum_node *res);
+pq_min(const struct pq *pq, struct dbl_entry *res);
 
 int
 pq_delete(struct pq *pq);

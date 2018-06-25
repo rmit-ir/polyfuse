@@ -13,6 +13,14 @@
 #define HASH(num, ht) (int_hash(num) % ht->capacity)
 #define NEED_REHASH(ht) ((float)ht->size / ht->capacity > LOAD_FACTOR)
 
+static enum accumtype accum_type = ACCUM_DBL;
+
+void
+enable_list_accumulator()
+{
+    accum_type = ACCUM_LIST;
+}
+
 /*
  * Knuth's multiplicative method.
  */
@@ -63,7 +71,7 @@ pf_topic_create(size_t capacity)
     htable = bmalloc(sizeof(*htable));
     htable->capacity = get_prime(capacity);
     htable->size = 0;
-    htable->data = bmalloc(sizeof(struct pf_accum *) * htable->capacity);
+    htable->data = bmalloc(sizeof(void *) * htable->capacity);
 
     return htable;
 }
@@ -76,7 +84,11 @@ pf_topic_free(struct pf_topic *htable)
 {
     for (size_t i = 0; i < htable->capacity; i++) {
         if (htable->data[i]) {
-            pf_accum_free(htable->data[i]);
+            if (ACCUM_LIST == accum_type) {
+                accum_list_free((struct accum_list *)htable->data[i]);
+            } else {
+                accum_dbl_free((struct accum_dbl *)htable->data[i]);
+            }
         }
     }
     free(htable->data);
@@ -90,7 +102,7 @@ unsigned long
 pf_topic_insert(struct pf_topic **htable, const int val)
 {
     unsigned long key;
-    struct pf_accum *entry;
+    struct accum *entry;
     struct pf_topic *current;
 
     current = *htable;
@@ -109,7 +121,11 @@ pf_topic_insert(struct pf_topic **htable, const int val)
     }
 
     if (!entry) {
-        entry = pf_accum_create(1000);
+        if (ACCUM_LIST == accum_type) {
+            entry = accum_list_create(1000);
+        } else {
+            entry = accum_dbl_create(1000);
+        }
         entry->topic = val;
         entry->is_set = true;
         current->data[key] = entry;
@@ -123,11 +139,11 @@ pf_topic_insert(struct pf_topic **htable, const int val)
  * Check a value exists in the hash table. Returns the value if found, `NULL`
  * otherwise.
  */
-struct pf_accum **
+struct accum **
 pf_topic_lookup(struct pf_topic *htable, const int val)
 {
     unsigned long key;
-    struct pf_accum *entry;
+    struct accum *entry;
 
     key = HASH(val, htable);
     entry = htable->data[key];

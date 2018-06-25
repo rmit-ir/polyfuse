@@ -13,15 +13,15 @@ extern "C" {
 #include "pq.h"
 
 struct pq *pq;
-struct accum_node stubs[] = {
-  {(char *)"DOC-1", 1.0, true, 1},
-  {(char *)"DOC-2", 2.0, true, 2},
-  {(char *)"DOC-3", 3.0, true, 3},
-  {(char *)"DOC-4", 4.0, true, 4},
-  {(char *)"DOC-5", 5.0, true, 5},
-  {(char *)"DOC-6", 6.0, true, 6},
-  {(char *)"DOC-7", 7.0, true, 7},
-  {(char *)"DOC-8", 8.0, true, 8},
+struct dbl_entry stubs[] = {
+  {(char *)"DOC-1", true, 1.0, 1},
+  {(char *)"DOC-2", true, 2.0, 2},
+  {(char *)"DOC-3", true, 3.0, 3},
+  {(char *)"DOC-4", true, 4.0, 4},
+  {(char *)"DOC-5", true, 5.0, 5},
+  {(char *)"DOC-6", true, 6.0, 6},
+  {(char *)"DOC-7", true, 7.0, 7},
+  {(char *)"DOC-8", true, 8.0, 8},
 };
 
 void
@@ -51,7 +51,7 @@ TEST_GROUP(pq)
  */
 TEST(pq, empty_pq_is_empty)
 {
-  struct accum_node dummy; 
+  struct dbl_entry dummy; 
 
   CHECK_EQUAL(0, pq_size(pq));
   CHECK_EQUAL(0, pq_delete(pq));
@@ -63,7 +63,7 @@ TEST(pq, empty_pq_is_empty)
  */
 TEST(pq, can_insert_item)
 {
-  struct accum_node dummy;
+  struct dbl_entry dummy;
 
   pq_insert(pq, dummy.docno, dummy.val, dummy.count);
 
@@ -75,7 +75,7 @@ TEST(pq, can_insert_item)
  */
 TEST(pq, can_insert_neg_item)
 {
-  struct accum_node dummy = {
+  struct dbl_entry dummy = {
     (char *)"DOC-1", -7.0, true, 1
   };
 
@@ -89,7 +89,7 @@ TEST(pq, can_insert_neg_item)
  */
 TEST(pq, skip_insert_full_and_low_priority)
 {
-  struct accum_node skipnode = {
+  struct dbl_entry skipnode = {
     (char *)"DOC-SKIP", -1.0, true, 1
   };
 
@@ -97,7 +97,7 @@ TEST(pq, skip_insert_full_and_low_priority)
 
   pq_insert(pq, skipnode.docno, skipnode.val, skipnode.count);
 
-  struct accum_node res;
+  struct dbl_entry res;
   pq_min(pq, &res);
   CHECK_EQUAL(8, pq_size(pq));
   DOUBLES_EQUAL(1.0, res.val, 0.01);
@@ -108,7 +108,7 @@ TEST(pq, skip_insert_full_and_low_priority)
  */
 TEST(pq, can_delete_item)
 {
-  struct accum_node dummy;
+  struct dbl_entry dummy;
 
   pq_insert(pq, dummy.docno, dummy.val, dummy.count);
   pq_delete(pq);
@@ -127,7 +127,7 @@ TEST(pq, fetch_top_item)
   pq_insert(pq, stubs[0].docno, stubs[0].val, stubs[0].count);
   CHECK_EQUAL(3, pq_size(pq));
 
-  struct accum_node res;
+  struct dbl_entry res;
   pq_min(pq, &res);
   CHECK_EQUAL(3, pq_size(pq));
   DOUBLES_EQUAL(1.0, res.val, 0.01);
@@ -144,7 +144,7 @@ TEST(pq, remove_items)
   pq_insert(pq, stubs[0].docno, stubs[0].val, stubs[0].count);
   CHECK_EQUAL(3, pq_size(pq));
 
-  struct accum_node res;
+  struct dbl_entry res;
   pq_remove(pq, &res);
   CHECK_EQUAL(2, pq_size(pq));
   DOUBLES_EQUAL(1.0, res.val, 0.01);

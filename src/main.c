@@ -118,9 +118,9 @@ main(int argc, char **argv)
              * All run files are assumed to have the same topics and are taken
              * from the first file given on the commandline.
              */
-            pf_init(&r->topics);
             pf_set_fusion(cmd);
             pf_set_rrf_k(rrf_k);
+            pf_init(&r->topics);
             first = false;
         }
 

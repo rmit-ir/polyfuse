@@ -18,39 +18,89 @@
 
 #include "util.h"
 
-struct pf_accum {
-    size_t capacity;
-    size_t size;
-    struct accum_node *data;
-    int topic;
+enum accumtype { ACCUM_NONE, ACCUM_DBL, ACCUM_LIST };
+
+struct ldbl_arr;
+
+struct default_entry {
+    char *docno;
     bool is_set;
 };
 
-struct accum_node {
+struct dbl_entry {
     char *docno;
-    long double val;
     bool is_set;
+    long double val;
     size_t count;
 };
 
-struct pf_accum *
-pf_accum_create(size_t capacity);
+struct list_entry {
+    char *docno;
+    bool is_set;
+    struct ldbl_arr *ary;
+};
+
+/*
+ * Base accumulator.
+ */
+struct accum {
+    uint8_t type;
+    size_t capacity;
+    size_t size;
+    int topic;
+    bool is_set;
+    struct default_entry *data;
+};
+
+/*
+ * Long double accumulator.
+ */
+struct accum_dbl {
+    uint8_t type;
+    size_t capacity;
+    size_t size;
+    int topic;
+    bool is_set;
+    struct dbl_entry *data;
+};
+
+/*
+ * List accumulator.
+ */
+struct accum_list {
+    uint8_t type;
+    size_t capacity;
+    size_t size;
+    int topic;
+    bool is_set;
+    struct list_entry *data;
+};
+
+struct accum *
+accum_dbl_create(const size_t capacity);
 
 void
-pf_accum_free(struct pf_accum *htable);
+accum_dbl_free(struct accum_dbl *htable);
 
 unsigned long
-pf_accum_less(struct pf_accum **htable, const char *docno, long double score);
+accum_dbl_less(struct accum **htable, const char *docno, long double score);
 
 unsigned long
-pf_accum_greater(
-    struct pf_accum **htable, const char *docno, long double score);
+accum_dbl_greater(struct accum **htable, const char *docno, long double score);
 
 unsigned long
-pf_accum_update(
-    struct pf_accum **htable, const char *docno, long double score);
+accum_dbl_update(struct accum **htable, const char *docno, long double score);
 
-struct pf_accum *
-pf_accum_rehash(struct pf_accum *htable);
+struct accum *
+accum_list_create(const size_t capacity);
+
+void
+accum_list_free(struct accum_list *acc);
+
+long double
+accum_list_median(const struct list_entry *l);
+
+unsigned long
+accum_list_append(struct accum **htable, const char *docno, long double score);
 
 #endif /* PF_ACCUM_H */
