@@ -12,7 +12,7 @@ TARGET = polyfuse
 GIT = $(shell which git)
 GITDIR = $(shell stat .git > /dev/null; echo $$?)
 VERSION_NUM = 0.2.0
-VERSION_EXTRA =
+VERSION_EXTRA = -dev
 ifneq ($(GIT),)
 ifeq ($(GITDIR), 0)
 	VERSION_EXTRA += ($(shell $(GIT) rev-parse --short=8 HEAD))
