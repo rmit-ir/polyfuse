@@ -12,6 +12,7 @@
 
 #include <float.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,6 +44,6 @@ long double
 pf_score(size_t rank, size_t n, struct trec_entry *tentry);
 
 void
-pf_present(FILE *stream, const char *id, size_t depth);
+pf_present(FILE *stream, const char *id, size_t depth, bool prevent_ties);
 
 #endif /* RBC_H */

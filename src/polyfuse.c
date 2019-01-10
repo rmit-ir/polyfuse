@@ -170,7 +170,7 @@ pf_score(size_t rank, size_t n, struct trec_entry *tentry)
 }
 
 void
-pf_present(FILE *stream, const char *id, size_t depth)
+pf_present(FILE *stream, const char *id, size_t depth, bool prevent_ties)
 {
     if (depth < 1) {
         err_exit("`depth` is 0");
@@ -227,10 +227,14 @@ pf_present(FILE *stream, const char *id, size_t depth)
             pq_remove(pq, res + sz++);
         }
         long long c = depth - 1;
+        size_t tie_breaker = 0;
         for (size_t j = sz - 1, k = 1; c >= 0; j--, c--) {
+            if (prevent_ties) {
+                tie_breaker = j;
+            }
             if (res[j].is_set) {
                 fprintf(stream, "%d Q0 %s %lu %.9Lf %s\n", qids.ary[i],
-                    res[j].docno, k++, j + res[j].val, id);
+                    res[j].docno, k++, tie_breaker + res[j].val, id);
             }
             if (0 == j) {
                 break;

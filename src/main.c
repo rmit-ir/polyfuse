@@ -41,13 +41,22 @@ static long double phi = 0.8;
 static long rrf_k = 60;
 static enum trec_norm fnorm = TNORM_NONE;
 static size_t depth = DEFAULT_DEPTH;
+static bool prevent_ties = false;
 char *runid = NULL;
 // the indices must align with `enum fusetype` entries
 const char *default_runid[] = {
     "", /* TNONE */
-    "polyfuse-combanz", "polyfuse-combmax", "polyfuse-combmed",
-    "polyfuse-combmin", "polyfuse-combmnz", "polyfuse-combsum", "polyfuse-rbc",
-    "polyfuse-rrf", "polyfuse-borda", "polyfuse-isr", "polyfuse-logisr",
+    "polyfuse-combanz",
+    "polyfuse-combmax",
+    "polyfuse-combmed",
+    "polyfuse-combmin",
+    "polyfuse-combmnz",
+    "polyfuse-combsum",
+    "polyfuse-rbc",
+    "polyfuse-rrf",
+    "polyfuse-borda",
+    "polyfuse-isr",
+    "polyfuse-logisr",
 };
 
 static int
@@ -130,7 +139,7 @@ main(int argc, char **argv)
         fclose(fp);
     }
 
-    pf_present(stdout, runid, depth);
+    pf_present(stdout, runid, depth, prevent_ties);
     pf_destory();
     free(runid);
 
@@ -205,19 +214,22 @@ parse_opt(int argc, char **argv)
         optind++;
     }
 
-    char opt_str[7] = {0};
+    char opt_str[8] = {0};
     if (TRBC == cmd) {
-        strcpy(opt_str, "d:r:p:");
+        strcpy(opt_str, "td:r:p:");
     } else if (TRRF == cmd) {
-        strcpy(opt_str, "d:r:k:");
+        strcpy(opt_str, "td:r:k:");
     } else if (is_score_based(cmd)) {
-        strcpy(opt_str, "d:r:n:");
+        strcpy(opt_str, "td:r:n:");
     } else {
-        strcpy(opt_str, "d:r:");
+        strcpy(opt_str, "td:r:");
     }
 
     while ((ch = getopt(argc, argv, opt_str)) != -1) {
         switch (ch) {
+        case 't':
+            prevent_ties = true;
+            break;
         case 'd':
             depth = strtoul(optarg, NULL, 10);
             break;
@@ -269,6 +281,7 @@ usage(void)
         "<fusion> [options] run1 run2 [run3 ...]\n"
         "\noptions:\n"
         "  -d depth     rank depth of output\n"
+        "  -t           prevent ties\n"
         "  -h           display this message\n"
         "  -r runid     set run identifier\n"
         "  -v           display version and exit\n"
