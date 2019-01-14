@@ -18,8 +18,8 @@ The following fusion methods are supported:
 
 ## Usage
 
-Fuse three runs using CombSUM to depth 100:
+Fuse three runs using CombSUM with scaled normalization to depth 100:
 
-```polyfuse combsum -d100 a.run b.run c.run > combsum.run```
+```polyfuse combsum -d 100 -n minmax a.run b.run c.run > combsum.run```
 
 To see all fusion commands and options run `polyfuse -h`.
