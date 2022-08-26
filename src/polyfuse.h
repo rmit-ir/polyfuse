@@ -32,7 +32,7 @@ void
 pf_destory();
 
 void
-pf_accumulate(struct trec_run *r);
+pf_accumulate(struct trec_run *r, double weight);
 
 void
 pf_set_fusion(const enum fusetype type);

@@ -7,6 +7,7 @@
  * that was distributed with this source code.
  */
 
+#include <assert.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -103,6 +104,28 @@ is_score_based(enum fusetype type)
     }
 }
 
+#define RUNFILE_WEIGHT_INIT_SZ 128
+static double runfile_weights[RUNFILE_WEIGHT_INIT_SZ] = {0.0};
+static size_t runfile_weights_len = 0;
+/* struct runfile_weight { */
+/*     double *ary; */
+/*     size_t len; */
+/*     size_t alloc; */
+/* }; */
+
+/* struct runfile_weight * */
+/* runfile_weight_create() */
+/* { */
+/*     struct runfile_weight *weights = NULL; */
+
+/*     weights = bmalloc(sizeof(struct runfile_weight)); */
+/*     weights->ary = bmalloc(sizeof(double) * RUNFILE_WEIGHT_INIT_SZ); */
+/*     weights->len = 0; */
+/*     weights->alloc = RUNFILE_WEIGHT_INIT_SZ; */
+
+/*     return weights; */
+/* } */
+
 int
 main(int argc, char **argv)
 {
@@ -112,7 +135,9 @@ main(int argc, char **argv)
 
     left = parse_opt(argc, argv);
     present_args();
+    printf("%d left\n", left);
 
+    size_t j = 0; /* runfile weight index */
     for (size_t i = left; (fp = next_file(i, argv)) != NULL; i--) {
         struct trec_run *r = trec_create();
         trec_read(r, fp);
@@ -134,7 +159,7 @@ main(int argc, char **argv)
         }
 
         pf_weight_alloc(phi, r->max_rank);
-        pf_accumulate(r);
+        pf_accumulate(r, runfile_weights[j++]);
         trec_destroy(r);
         fclose(fp);
     }
@@ -214,11 +239,11 @@ parse_opt(int argc, char **argv)
         optind++;
     }
 
-    char opt_str[8] = {0};
+    char opt_str[10] = {0};
     if (TRBC == cmd) {
         strcpy(opt_str, "td:r:p:");
     } else if (TRRF == cmd) {
-        strcpy(opt_str, "td:r:k:");
+        strcpy(opt_str, "td:r:k:w:");
     } else if (is_score_based(cmd)) {
         strcpy(opt_str, "td:r:n:");
     } else {
@@ -238,6 +263,11 @@ parse_opt(int argc, char **argv)
             break;
         case 'k':
             rrf_k = strtol(optarg, NULL, 10);
+            break;
+        case 'w':
+            runfile_weights[runfile_weights_len++] = strtod(optarg, NULL);
+            /* printf("%s\n", optarg); */
+            /* printf("double %f\n", runfile_weights[runfile_weights_len]); */
             break;
         case 'n':
             fnorm = strtonorm(optarg);
@@ -262,6 +292,9 @@ parse_opt(int argc, char **argv)
         usage();
         exit(EXIT_FAILURE);
     }
+
+    /* rrf weights equal to runfiles? */
+    assert(argc == (int) runfile_weights_len);
 
     if (!runid) {
         runid = strdup(default_runid[cmd]);

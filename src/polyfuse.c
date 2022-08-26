@@ -81,12 +81,12 @@ pf_destory()
 }
 
 void
-pf_accumulate(struct trec_run *r)
+pf_accumulate(struct trec_run *r, double weight)
 {
     for (size_t i = 0; i < r->len; i++) {
         size_t rank = r->ary[i].rank - 1;
         if (rank < weight_sz) {
-            long double score = pf_score(rank + 1, r->len, &r->ary[i]);
+            long double score = pf_score(rank + 1, r->len, &r->ary[i]) * weight;
             struct accum **curr;
             curr = pf_topic_lookup(topic_tab, r->ary[i].qid);
             if (*curr) {
